@@ -2,13 +2,19 @@ import * as React from "react";
 import type { User as FirebaseUser } from "firebase/auth";
 
 export type AuthUser = FirebaseUser;
+export enum LoginState {
+  uninitialized,
+  authenticatedWithIncompleteProfile,
+  signedIn,
+  loggedOut
+}
 
-type ContextState = { user: FirebaseUser | null };
-export const FirebaseAuthContext = React.createContext<ContextState>({ user: null });
+type ContextState = { user: FirebaseUser | null | undefined, loginState: LoginState };
+export const FirebaseAuthContext = React.createContext<ContextState>({ user: undefined, loginState: LoginState.uninitialized });
 
 /**
  * Usage:
- *  const { user } = useAuth();
+ *  const { user, loginState } = useAuth();
  *
  * user is either a FirebaseUser object when signed-in or null when signed-out
  */

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AuthUser, useAuth } from "./auth/FirebaseAuthContext";
+import { LoginState, useAuth } from "./auth/FirebaseAuthContext";
 import { useNavigate } from "react-router-dom";
 import { useFloating } from "@floating-ui/react";
 import { shift } from "@floating-ui/dom";
@@ -7,8 +7,8 @@ import { auth } from "./lib/firebaseApp";
 import { signOut } from "firebase/auth";
 
 export default function NavigationBar() {
-  const { user } = useAuth();
   const navigate = useNavigate();
+  const { user, loginState } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { refs, floatingStyles } = useFloating({
     middleware: [
@@ -33,20 +33,19 @@ export default function NavigationBar() {
   }
 
   useEffect(() => {
-    function isProfileComplete(authUser: AuthUser) {
-      const hasName = !!(authUser.displayName)
-      const hasPhone = !!(authUser.phoneNumber)
-      const hasEmail = !!(authUser.email)
-      return hasName && hasPhone && hasEmail
-    }
-  
-    if (user == null) {
-      console.log(`user not signed in`);
-    } else if (!isProfileComplete(user)) {
-      console.log(`user signed in but profile not complete`);
-      navigate(`/signIn?redirectUrl=${window.location.pathname}`)
-    } else {
-      console.log(`user signed in`)
+    switch (loginState) {
+      case LoginState.uninitialized:
+        return;
+      case LoginState.loggedOut:
+        console.log(`User logged out`);
+        return;
+      case LoginState.authenticatedWithIncompleteProfile:
+        console.log(`User profile not complete. Redirecting..`);
+        navigate(`/signIn?redirectUrl=${window.location.pathname}`)
+        return;
+      case LoginState.signedIn:
+        console.log(`User successfully signedIn`)
+        return;
     }
   })
 

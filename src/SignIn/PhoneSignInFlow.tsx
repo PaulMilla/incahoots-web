@@ -6,6 +6,7 @@ import { E164Number } from 'libphonenumber-js/core';
 import { useNavigate } from "react-router-dom";
 import { isProfileComplete } from "../auth/FirebaseAuthContext";
 import { CompleteRegistration } from "./CompleteRegistration";
+import { toast } from "react-toastify";
 
 enum SignInStep {
   phoneSignIn,
@@ -42,7 +43,9 @@ export function PhoneSignInFlow() {
         const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, verifier);
         setConfirmationResult(confirmationResult);
         setSignInStep(SignInStep.phoneConfirmation);
-      } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        toast.error(`Error: ${error.message}`)
         console.log(`Error: SMS not sent`);
         console.log(error);
       }

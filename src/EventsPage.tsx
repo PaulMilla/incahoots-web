@@ -36,7 +36,7 @@ export default function EventsPage() {
             {
                 userEvents?.map(event => {
                     return (
-                        <div>
+                        <div key={event.eventDetails.id}>
                             <p>event.name: <a href={`events/${event.eventDetails.id}`}>{event.eventDetails.name}</a></p>
                             <p>event.id: {event.eventDetails.id}</p>
                             <p>event.isHost: {event.myAttendeeDetails.isHost ? "true" : "false"}</p>

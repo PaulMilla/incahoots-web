@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createEvent } from "./lib/inCahootsApi"
 import { CreateEventBody } from "./types";
 import { useNavigate } from "react-router-dom";
+import NavigationBar from "./NavigationBar";
 
 export default function NewEventPage() {
     const navigate = useNavigate();
@@ -29,6 +30,7 @@ export default function NewEventPage() {
     const buttonClassName = "outline outline-offset-2 outline-1"
     return (
         <div>
+            <NavigationBar />
             <form>
                 <label>eventName: </label>
                 <input
