@@ -9,6 +9,7 @@ import EventPage from "./EventPage";
 import SignInPage from "./SignIn/SignInPage";
 import EventsPage from "./EventsPage";
 import NewEventPage from "./NewEventPage";
+import { ToastContainer } from "react-toastify";
 
 const router = createBrowserRouter([
   {
@@ -37,6 +38,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <AuthProvider>
       <RouterProvider router={router} />
+      <ToastContainer />
     </AuthProvider>
   </React.StrictMode>
 );

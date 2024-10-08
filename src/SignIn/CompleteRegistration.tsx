@@ -6,7 +6,7 @@ import { E164Number } from 'libphonenumber-js/core';
 import { useNavigate } from "react-router-dom";
 import { AuthUser, useAuth } from "../auth/FirebaseAuthContext";
 import { registrationComplete } from "../lib/inCahootsApi";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 
 export function CompleteRegistration() {
   const redirectUrl = "/"; // TODO: Hook up redirectUrl to go back to where the user was before
@@ -166,7 +166,6 @@ export function CompleteRegistration() {
   
   return (
     <div>
-      <ToastContainer position="top-right" />
       {verificationId !== undefined ? (
         <form>
           <label>enter verification code: </label>

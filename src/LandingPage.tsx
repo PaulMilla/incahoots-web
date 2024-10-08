@@ -1,4 +1,4 @@
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import NavigationBar from "./NavigationBar.tsx";
 
 // Landing marketing page at root route with calls to action to create events and/or login
@@ -49,7 +49,6 @@ function LandingPage() {
           </div>
         </div>
       </section>
-      <ToastContainer />
     </div>
   );
 }
