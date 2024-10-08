@@ -1,23 +1,24 @@
 import { auth } from "../lib/firebaseApp";
 
-import firebase from "firebase/compat/app";
-import * as firebaseui from "firebaseui";
 import "firebaseui/dist/firebaseui.css";
 import { useEffect, useState } from "react";
 
 import 'react-phone-number-input/style.css'
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { isProfileComplete, useAuth } from "../AuthContext";
+import { isProfileComplete, useAuth } from "../auth/FirebaseAuthContext";
 import { GoogleAuthProvider, isSignInWithEmailLink, signInWithPopup } from "firebase/auth";
-import { EmailSignInFlow } from "./EmailSignInFlow.tsx";
-import { PhoneSignInFlow } from "./PhoneSignInFlow.tsx";
+import { EmailSignInFlow } from "./EmailSignInFlow";
+import { PhoneSignInFlow } from "./PhoneSignInFlow";
 import { CompleteRegistration } from "./CompleteRegistration";
+// import firebase from "firebase/compat/app";
+// import * as firebaseui from "firebaseui";
 
 /* TODO: Implement these providers ourselves and remove this dependency
  * Phone Auth doesn't work
  * Not updated to latest Firebase version that allows for tree shaking
  * Generally feels unmaintained
 */
+/*
 function FirebaseWebUI() {
   // initialize FirebaseUI singleton
   const ui =
@@ -70,6 +71,7 @@ function FirebaseWebUI() {
     </div>
   )
 }
+*/
 
 enum SignInOptions {
   phone,
@@ -87,8 +89,14 @@ export default function SignInPage() {
   console.log(`RedirectUrl set to ${redirectUrl}`)
 
   async function googleSignIn() {
-    const userCredential = await signInWithPopup(auth, new GoogleAuthProvider())
-    GoogleAuthProvider.credentialFromResult(userCredential)
+    const provider = new GoogleAuthProvider();
+    provider.addScope('profile');
+    provider.addScope('email');
+    const result = await signInWithPopup(auth, provider);
+
+    // const userCredential = await signInWithPopup(auth, new GoogleAuthProvider())
+    // GoogleAuthProvider.credentialFromResult(userCredential)
+    GoogleAuthProvider.credentialFromResult(result)
   }
 
   function goHome() {
@@ -98,7 +106,14 @@ export default function SignInPage() {
   // If we navigate to the /signIn page when fully logged in should we redirect back home,
   // or signOut so that the user can signIn again?
   useEffect(() => {
-    if (user != null && isProfileComplete(user)) {
+    if (user == null) {
+        console.log(`❗ User is null: ${user}`)
+        return;
+    }
+    const isUserProfileComplete = isProfileComplete(user)
+    console.log(`isUserProfileComplete: ${isUserProfileComplete}`)
+
+    if (user != null && isUserProfileComplete) {
       console.log('SignIn complete. Redirecting back home...')
       navigate('/')
     }
@@ -135,7 +150,7 @@ export default function SignInPage() {
           </div>
         )
       }
-      <FirebaseWebUI />
+      {/* <FirebaseWebUI /> */}
     </section>
   );
 }

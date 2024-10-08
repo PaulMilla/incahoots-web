@@ -4,7 +4,7 @@ import { useState } from "react";
 import PhoneInput from 'react-phone-number-input';
 import { E164Number } from 'libphonenumber-js/core';
 import { useNavigate } from "react-router-dom";
-import { isProfileComplete } from "../AuthContext";
+import { isProfileComplete } from "../auth/FirebaseAuthContext";
 import { CompleteRegistration } from "./CompleteRegistration";
 
 enum SignInStep {

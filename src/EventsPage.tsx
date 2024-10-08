@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "./auth/FirebaseAuthContext";
 import NavigationBar from "./NavigationBar";
 import { getUserEventsPublisher } from "./lib/firestore";
 import { UserEvent } from "./types";

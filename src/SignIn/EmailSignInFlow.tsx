@@ -2,7 +2,7 @@ import { auth } from "../lib/firebaseApp";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { isSignInWithEmailLink, sendSignInLinkToEmail, signInWithEmailLink } from "firebase/auth";
-import { isProfileComplete } from "../AuthContext";
+import { isProfileComplete } from "../auth/FirebaseAuthContext";
 import { CompleteRegistration } from "./CompleteRegistration";
 import { registrationComplete } from "../lib/inCahootsApi";
 

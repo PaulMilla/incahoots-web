@@ -12,8 +12,8 @@ import { getAnalytics } from "firebase/analytics";
 const firebaseConfig = {
     apiKey: "AIzaSyBtcO6gH7QsNIayV1F4GgfoHQ1CnMHeQfc",
     // https://firebase.google.com/docs/auth/web/redirect-best-practices?hl=en&authuser=0#update-authdomain
-    // authDomain: "in-cahoots-52c24.firebaseapp.com",
-    authDomain: "incahoots.rsvp",
+    authDomain: "in-cahoots-52c24.firebaseapp.com",
+    // authDomain: "incahoots.rsvp",
     projectId: "in-cahoots-52c24",
     storageBucket: "in-cahoots-52c24.appspot.com",
     messagingSenderId: "618787522440",

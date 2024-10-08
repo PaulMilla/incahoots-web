@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AuthUser, useAuth } from "./AuthContext.tsx";
+import { AuthUser, useAuth } from "./auth/FirebaseAuthContext";
 import { useNavigate } from "react-router-dom";
 import { useFloating } from "@floating-ui/react";
 import { shift } from "@floating-ui/dom";

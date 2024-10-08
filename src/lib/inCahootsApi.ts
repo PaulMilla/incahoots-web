@@ -1,4 +1,4 @@
-import { AuthUser } from "../AuthContext";
+import { AuthUser } from "../auth/FirebaseAuthContext";
 import { CreateEventBody, UpdateRsvpBody } from "../types";
 import { auth } from "./firebaseApp";
 

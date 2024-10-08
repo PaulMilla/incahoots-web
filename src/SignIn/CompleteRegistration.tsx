@@ -4,7 +4,7 @@ import { useState } from "react";
 import PhoneInput from 'react-phone-number-input';
 import { E164Number } from 'libphonenumber-js/core';
 import { useNavigate } from "react-router-dom";
-import { AuthUser, useAuth } from "../AuthContext";
+import { AuthUser, useAuth } from "../auth/FirebaseAuthContext";
 import { registrationComplete } from "../lib/inCahootsApi";
 
 export function CompleteRegistration() {

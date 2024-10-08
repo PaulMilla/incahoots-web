@@ -8,7 +8,7 @@ import { convertFirestoreTimestampToDate } from "./utils/timestamps";
 import NavigationBar from "./NavigationBar";
 import { map } from 'rxjs'
 import * as api from "./lib/inCahootsApi";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "./auth/FirebaseAuthContext";
 
 type CategorizedAttendees = {
   hosts: Attendee[];

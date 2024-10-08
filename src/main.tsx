@@ -2,12 +2,12 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { AuthProvider } from "./AuthContext.tsx";
-import LandingPage from "./LandingPage.tsx";
-import EventPage from "./EventPage.tsx";
-import SignInPage from "./SignIn/SignInPage.tsx";
-import EventsPage from "./EventsPage.tsx";
-import NewEventPage from "./NewEventPage.tsx";
+import { AuthProvider } from "./auth/AuthContext";
+import LandingPage from "./LandingPage";
+import EventPage from "./EventPage";
+import SignInPage from "./SignIn/SignInPage";
+import EventsPage from "./EventsPage";
+import NewEventPage from "./NewEventPage";
 
 const router = createBrowserRouter([
   {
