@@ -88,7 +88,13 @@ export function PhoneSignInFlow() {
         console.log(user);
 
         if (isProfileComplete(user)) {
+          console.log(`User Profile complete! Navigating to redirectUrl: ${redirectUrl}`)
           navigate(redirectUrl)
+        } else {
+          const hasName = !!(user.displayName)
+          const hasPhone = !!(user.phoneNumber)
+          const hasEmail = !!(user.email)
+          console.log(`User profile missing ${hasName ? "displayName" : ""} ${hasPhone ? "phoneNumber" : ""} ${hasEmail ? "email" : ""}`)
         }
         setSignInStep(SignInStep.completeRegistration)
       } catch (error) {
