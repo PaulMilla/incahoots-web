@@ -17,8 +17,7 @@ export function CompleteRegistration() {
   const splitName = user?.displayName?.split(" ") ?? ["", ""];
   const initFirstName = splitName[0];
   const initLastName = splitName[1];
-  // @ts-expect-error - This seems to be the recommended way of creating an E164Number
-  const initPhone: E164Number = user?.phoneNumber;
+  const initPhone = user?.phoneNumber as E164Number;
   const initEmail = user?.email;
 
   const [firstName, setFirstName] = useState<string>(initFirstName ?? "");
@@ -104,6 +103,9 @@ export function CompleteRegistration() {
         // https://firebase.google.com/docs/auth/flutter/errors
       } else if (errorCode === "auth/invalid-app-credential") {
         console.error("Invalid App Credential");
+        console.error(error);
+      } else if (errorCode === "auth/too-many-requests") {
+        console.error("Too many requests");
         console.error(error);
       } else {
         console.error(error);
