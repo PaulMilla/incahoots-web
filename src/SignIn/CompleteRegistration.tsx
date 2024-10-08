@@ -6,6 +6,7 @@ import { E164Number } from 'libphonenumber-js/core';
 import { useNavigate } from "react-router-dom";
 import { AuthUser, useAuth } from "../auth/FirebaseAuthContext";
 import { registrationComplete } from "../lib/inCahootsApi";
+import { toast, ToastContainer } from "react-toastify";
 
 export function CompleteRegistration() {
   const redirectUrl = "/"; // TODO: Hook up redirectUrl to go back to where the user was before
@@ -52,22 +53,7 @@ export function CompleteRegistration() {
       // TODO: Maybe navigate to a "check your email to finish registering?" page
       navigate(redirectUrl);
     } catch (error) {
-      // @ts-expect-error - How to do type checking?
-      // https://stackoverflow.com/q/75447800 
-      // https://stackoverflow.com/q/72322523
-      const errorCode = error.code;
-      console.error(`ErrorCode: ${errorCode}`);
-      if (errorCode === "auth/requires-recent-login") {
-        console.error(error);
-        // TODO: use reauthenticateWithCredential() or reauthenticateWithPhoneNumber() and try again
-        // https://firebase.google.com/docs/reference/js/auth.md#reauthenticatewithcredential_60f8043
-        signOut(auth);
-      } else if (errorCode === "auth/account-exists-with-different-credential") {
-        // TODO: See how they recommend doing this with flutter
-        // https://firebase.google.com/docs/auth/flutter/errors
-      } else {
-        console.error(error);
-      }
+      handleFirebaseError(error)
     }
   }
 
@@ -85,7 +71,7 @@ export function CompleteRegistration() {
       const verificationId = await provider.verifyPhoneNumber(newPhoneNumber, verifier);
       setVerificationId(verificationId)
     } catch (error) {
-        handleFirebaseError(error)
+      handleFirebaseError(error)
     }
   }
 
@@ -139,108 +125,110 @@ export function CompleteRegistration() {
       await registrationComplete(user)
       navigate(redirectUrl);
     } catch (error) {
-        handleFirebaseError(error)
+      handleFirebaseError(error)
     }
   }
 
   function handleFirebaseError(error: unknown) {
-      // @ts-expect-error - How to do type checking?
-      // https://stackoverflow.com/q/75447800 
-      // https://stackoverflow.com/q/72322523
-      const errorCode = error.code as string;
-      console.error(`ErrorCode: ${errorCode}`);
-      if (errorCode === "auth/requires-recent-login") {
-        console.error(error);
-        // TODO: use reauthenticateWithCredential() or reauthenticateWithPhoneNumber() and try again
-        // https://firebase.google.com/docs/reference/js/auth.md#reauthenticatewithcredential_60f8043
-        signOut(auth);
-      } else if (errorCode === "auth/argument-error") {
-        console.log("argument error?");
-        console.error(error);
-      } else if (errorCode === "auth/account-exists-with-different-credential") {
-        // TODO: See how they recommend doing this with flutter
-        // https://firebase.google.com/docs/auth/flutter/errors
-        console.error("Account already exists");
-        console.error(error);
-      } else if (errorCode === "auth/invalid-app-credential") {
-        console.error("Invalid App Credential");
-        console.error(error);
-      } else if (errorCode === "auth/too-many-requests") {
-        console.error("Too many requests");
-        console.error(error);
-      } else {
-        console.error(error);
-      }
+    // @ts-expect-error - How to do type checking?
+    // https://stackoverflow.com/q/75447800 
+    // https://stackoverflow.com/q/72322523
+    const errorCode = error.code as string;
+    toast.error(errorCode);
+    console.error(`ErrorCode: ${errorCode}`);
+    if (errorCode === "auth/requires-recent-login") {
+      console.error(error);
+      // TODO: use reauthenticateWithCredential() or reauthenticateWithPhoneNumber() and try again
+      // https://firebase.google.com/docs/reference/js/auth.md#reauthenticatewithcredential_60f8043
+      signOut(auth);
+    } else if (errorCode === "auth/argument-error") {
+      console.log("argument error?");
+      console.error(error);
+    } else if (errorCode === "auth/account-exists-with-different-credential") {
+      // TODO: See how they recommend doing this with flutter
+      // https://firebase.google.com/docs/auth/flutter/errors
+      console.error("Account already exists");
+      console.error(error);
+    } else if (errorCode === "auth/invalid-app-credential") {
+      console.error("Invalid App Credential");
+      console.error(error);
+    } else if (errorCode === "auth/too-many-requests") {
+      console.error("Too many requests");
+      console.error(error);
+    } else {
+      console.error(error);
+    }
   }
 
   function onQuit() {
     signOut(auth)
   }
-
-  return verificationId !== undefined ? (
+  
+  return (
     <div>
-      <form>
-        <label>enter verification code: </label>
-        <input
+      <ToastContainer position="top-right" />
+      {verificationId !== undefined ? (
+        <form>
+          <label>enter verification code: </label>
+          <input
             value={code}
             onChange={x => setCode(x.target.value)}
             className="outline outline-offset-2 outline-1" />
-        <br /> <br />
-        <button onClick={onCodeSubmit}
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
-          type="button"
-          id={submitId}
-        >Complete Profile</button>
-        <button onClick={onQuit}
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
-          type="button"
-          id={submitId}
-        >Quit</button>
-      </form>
-    </div>
-  ) : (
-    <div>
-      <form>
-        <label>firstName: </label>
-        <input
-          value={firstName}
-          onChange={x => setFirstName(x.target.value)}
-          className="outline outline-offset-2 outline-1" />
-        <br /> <br />
-        <label>lastName: </label>
-        <input
-          value={lastName}
-          onChange={x => setLastName(x.target.value)}
-          className="outline outline-offset-2 outline-1" />
-        <br /> <br />
-        <label>phoneNumber: </label>
-        <PhoneInput
-          international
-          countryCallingCodeEditable={false}
-          placeholder="Enter phone number"
-          defaultCountry="US"
-          value={phone}
-          disabled={hasPhoneNumber ? true : false}
-          onChange={setPhone} />
-        <br /> <br />
-        <label>email: </label>
-        <input
-          value={email}
-          onChange={x => setEmail(x.target.value)}
-          disabled={hasEmail ? true : false}
-          className="outline outline-offset-2 outline-1" />
-        <br /> <br />
-        <button onClick={onFormSubmit}
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
-          type="button"
-          id={submitId}
-        >Complete Profile</button>
-        <button onClick={onQuit}
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
-          type="button"
-          id={submitId}
-        >Quit</button>
-      </form>
+          <br /> <br />
+          <button onClick={onCodeSubmit}
+            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
+            type="button"
+            id={submitId}
+          >Complete Profile</button>
+          <button onClick={onQuit}
+            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
+            type="button"
+            id={submitId}
+          >Quit</button>
+        </form>
+      ) : (
+        <form>
+          <label>firstName: </label>
+          <input
+            value={firstName}
+            onChange={x => setFirstName(x.target.value)}
+            className="outline outline-offset-2 outline-1" />
+          <br /> <br />
+          <label>lastName: </label>
+          <input
+            value={lastName}
+            onChange={x => setLastName(x.target.value)}
+            className="outline outline-offset-2 outline-1" />
+          <br /> <br />
+          <label>phoneNumber: </label>
+          <PhoneInput
+            international
+            countryCallingCodeEditable={false}
+            placeholder="Enter phone number"
+            defaultCountry="US"
+            value={phone}
+            disabled={hasPhoneNumber ? true : false}
+            onChange={setPhone} />
+          <br /> <br />
+          <label>email: </label>
+          <input
+            value={email}
+            onChange={x => setEmail(x.target.value)}
+            disabled={hasEmail ? true : false}
+            className="outline outline-offset-2 outline-1" />
+          <br /> <br />
+          <button onClick={onFormSubmit}
+            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
+            type="button"
+            id={submitId}
+          >Complete Profile</button>
+          <button onClick={onQuit}
+            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
+            type="button"
+            id={submitId}
+          >Quit</button>
+        </form>
+      )}
     </div>
   );
 }
