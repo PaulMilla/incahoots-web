@@ -10,8 +10,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@floating-ui/react": "^0.26.24",
+    "firebase": "^10.14.0",
+    "firebaseui": "^6.1.0",
+    "libphonenumber-js": "^1.11.11",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-phone-number-input": "^3.4.8",
+    "react-router-dom": "^6.26.2",
+    "rxfire": "^6.0.5",
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",
