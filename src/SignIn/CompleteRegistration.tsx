@@ -85,31 +85,7 @@ export function CompleteRegistration() {
       const verificationId = await provider.verifyPhoneNumber(newPhoneNumber, verifier);
       setVerificationId(verificationId)
     } catch (error) {
-      // @ts-expect-error - How to do type checking?
-      // https://stackoverflow.com/q/75447800 
-      // https://stackoverflow.com/q/72322523
-      const errorCode = error.code;
-      console.error(`ErrorCode: ${errorCode}`);
-      if (errorCode === "auth/requires-recent-login") {
-        console.error(error);
-        // TODO: use reauthenticateWithCredential() or reauthenticateWithPhoneNumber() and try again
-        // https://firebase.google.com/docs/reference/js/auth.md#reauthenticatewithcredential_60f8043
-        signOut(auth);
-      } else if (errorCode === "auth/argument-error") {
-        console.log("argument error?");
-        console.error(error);
-      } else if (errorCode === "auth/account-exists-with-different-credential") {
-        // TODO: See how they recommend doing this with flutter
-        // https://firebase.google.com/docs/auth/flutter/errors
-      } else if (errorCode === "auth/invalid-app-credential") {
-        console.error("Invalid App Credential");
-        console.error(error);
-      } else if (errorCode === "auth/too-many-requests") {
-        console.error("Too many requests");
-        console.error(error);
-      } else {
-        console.error(error);
-      }
+        handleFirebaseError(error)
     }
   }
 
@@ -163,8 +139,38 @@ export function CompleteRegistration() {
       await registrationComplete(user)
       navigate(redirectUrl);
     } catch (error) {
-      console.error(error)
+        handleFirebaseError(error)
     }
+  }
+
+  function handleFirebaseError(error: unknown) {
+      // @ts-expect-error - How to do type checking?
+      // https://stackoverflow.com/q/75447800 
+      // https://stackoverflow.com/q/72322523
+      const errorCode = error.code as string;
+      console.error(`ErrorCode: ${errorCode}`);
+      if (errorCode === "auth/requires-recent-login") {
+        console.error(error);
+        // TODO: use reauthenticateWithCredential() or reauthenticateWithPhoneNumber() and try again
+        // https://firebase.google.com/docs/reference/js/auth.md#reauthenticatewithcredential_60f8043
+        signOut(auth);
+      } else if (errorCode === "auth/argument-error") {
+        console.log("argument error?");
+        console.error(error);
+      } else if (errorCode === "auth/account-exists-with-different-credential") {
+        // TODO: See how they recommend doing this with flutter
+        // https://firebase.google.com/docs/auth/flutter/errors
+        console.error("Account already exists");
+        console.error(error);
+      } else if (errorCode === "auth/invalid-app-credential") {
+        console.error("Invalid App Credential");
+        console.error(error);
+      } else if (errorCode === "auth/too-many-requests") {
+        console.error("Too many requests");
+        console.error(error);
+      } else {
+        console.error(error);
+      }
   }
 
   function onQuit() {

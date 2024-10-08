@@ -10,15 +10,14 @@ import { GoogleAuthProvider, isSignInWithEmailLink, signInWithPopup } from "fire
 import { EmailSignInFlow } from "./EmailSignInFlow";
 import { PhoneSignInFlow } from "./PhoneSignInFlow";
 import { CompleteRegistration } from "./CompleteRegistration";
-// import firebase from "firebase/compat/app";
-// import * as firebaseui from "firebaseui";
+import firebase from "firebase/compat/app";
+import * as firebaseui from "firebaseui";
 
 /* TODO: Implement these providers ourselves and remove this dependency
  * Phone Auth doesn't work
  * Not updated to latest Firebase version that allows for tree shaking
  * Generally feels unmaintained
 */
-/*
 function FirebaseWebUI() {
   // initialize FirebaseUI singleton
   const ui =
@@ -71,7 +70,6 @@ function FirebaseWebUI() {
     </div>
   )
 }
-*/
 
 enum SignInOptions {
   phone,
@@ -85,7 +83,8 @@ export default function SignInPage() {
 
   const [signInOption, setSignInOption] = useState<SignInOptions>();
   const [searchParams] = useSearchParams();
-  const redirectUrl = searchParams.get('redirectUrl') ?? "/";
+  let redirectUrl = searchParams.get('redirectUrl') ?? "/";
+  redirectUrl = redirectUrl !== "/signIn" ? redirectUrl : "/";
   console.log(`RedirectUrl set to ${redirectUrl}`)
 
   async function googleSignIn() {
@@ -150,7 +149,7 @@ export default function SignInPage() {
           </div>
         )
       }
-      {/* <FirebaseWebUI /> */}
+      <FirebaseWebUI />
     </section>
   );
 }
