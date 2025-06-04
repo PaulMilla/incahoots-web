@@ -1,11 +1,12 @@
 import { initializeApp } from "firebase/app";
-import { Auth, getAuth } from "firebase/auth";
+import { Auth, connectAuthEmulator, getAuth } from "firebase/auth";
 import { Observable } from 'rxjs';
 
 // @ts-expect-error - Unfortunately types seem to be messed up
 // there are types at `/node_modules/rxfire/auth/index.d.ts'`
 import { authState } from "rxfire/auth";
 import { getAnalytics } from "firebase/analytics";
+import { isLocalhost } from "../utils/isLocalHost";
 
 // These are unique, but non-secret IDs for firebase projects
 // https://firebase.google.com/docs/web/learn-more#config-object
@@ -28,8 +29,8 @@ export const auth = getAuth(app)
 
 export const authPublisher: Observable<Auth> = authState(auth)
 
-/*
-if (window.location.hostname === 'localhost') {
-  connectAuthEmulator(auth, 'http://127.0.0.1:9099');
+// Only connect to emulator if AUTH_URL is defined and using localhost
+const authUrlString = import.meta.env.VITE_AUTH_URL
+if (authUrlString && isLocalhost(authUrlString)) {
+    connectAuthEmulator(auth, authUrlString);
 }
-*/

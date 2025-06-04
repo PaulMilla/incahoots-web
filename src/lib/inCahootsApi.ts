@@ -2,8 +2,8 @@ import { AuthUser } from "../auth/FirebaseAuthContext";
 import { CreateEventBody, UpdateRsvpBody } from "../types";
 import { auth } from "./firebaseApp";
 
-// TODO: Extract into an env variable
-const baseUrl = `https://us-central1-in-cahoots-52c24.cloudfunctions.net`
+// TODO: Should we throw error instead?
+const baseUrl = import.meta.env.VITE_API_URL ?? "https://us-central1-in-cahoots-52c24.cloudfunctions.net"
 const apiUrl = `${baseUrl}/api`;
 
 // TODO: pick a better library for making HTTP API calls

@@ -31,7 +31,7 @@ export default function NewEventPage() {
     return (
         <div>
             <NavigationBar />
-            <form>
+            <form className="py-8 px-4 mx-auto max-w-screen-xl text-left lg:py-16">
                 <label>eventName: </label>
                 <input
                 value={eventName}

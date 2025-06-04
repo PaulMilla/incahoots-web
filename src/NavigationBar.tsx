@@ -104,15 +104,16 @@ export default function NavigationBar() {
                 <ul className="py-2" aria-labelledby="user-menu-button">
                   <li>
                     <a
-                      href="#"
+                      href="/events"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 "
                     >
-                      Dashboard
+                      Events
                     </a>
                   </li>
                   <li>
                     <a
                       href="#"
+                      onClick={ () => alert("TODO: Settings") }
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 "
                     >
                       Settings

@@ -9,6 +9,7 @@ import {
   query,
   collectionGroup,
   getDoc,
+  connectFirestoreEmulator,
 } from "firebase/firestore";
 import { map, switchMap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
@@ -16,10 +17,18 @@ import { Observable } from 'rxjs';
 // @ts-expect-error - Unfortunately types seem to be messed up
 // There are types at '/node_modules/rxfire/firestore/index.d.ts'
 import { docData, collectionData } from 'rxfire/firestore';
+import { isLocalhost } from "../utils/isLocalHost.ts";
 
 // Using RxFire:
 // https://github.com/FirebaseExtended/rxfire/blob/main/docs/firestore.md
 const db = getFirestore(app);
+
+// Only connect to emulator if FIRESTORE_URL is defined and using localhost
+const fireStoreUrlString = import.meta.env.VITE_FIRESTORE_URL
+if (fireStoreUrlString && isLocalhost(fireStoreUrlString)) {
+  const localFireStoreUrl = new URL(fireStoreUrlString)
+  connectFirestoreEmulator(db, localFireStoreUrl.hostname, parseInt(localFireStoreUrl.port))
+}
 
 export async function getMyAttendeeId(userId: string | undefined, eventId: string) {
   if (!userId) {

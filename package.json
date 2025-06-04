@@ -4,13 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "vite --mode development",
+    "stage": "vite --mode production",
+    "build": "tsc -b && vite build --mode production",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "@floating-ui/react": "^0.26.24",
+    "dotenv": "^16.5.0",
     "firebase": "^10.14.0",
     "firebaseui": "^6.1.0",
     "libphonenumber-js": "^1.11.11",
