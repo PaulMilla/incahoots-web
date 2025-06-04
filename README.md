@@ -1,3 +1,25 @@
+# Quickstart
+
+To run in development mode you will need the [incahoots-service](https://github.com/PaulMilla/incahoots-service) code running on localhost.
+This will use the `.env.development` env file which should have values that match each of the emulators
+
+```sh
+npm run dev
+```
+
+To run in staging mode we use the `.env.production` env file which actually points to the live site (there is no staging currently)
+
+```sh
+npm run stage
+```
+
+Since production is being run on firebase the most we can do from CLI is to build/package the production files with vite (also using prod env file)
+
+```sh
+npm run build
+```
+
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
