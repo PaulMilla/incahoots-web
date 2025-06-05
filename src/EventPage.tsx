@@ -166,6 +166,20 @@ export default function EventPage() {
   const mapsLink = eventDetails?.location.address
     ? createGoogleMapsLink(eventDetails?.location.address)
     : null;
+  
+  function InviteContactsButton() {
+    return (
+      <button
+        className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-linear-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-hidden focus:ring-cyan-200 dark:focus:ring-cyan-800"
+        onClick={() => alert("TODO: Popup invite modal")}
+        type="button"
+      >
+        <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent dark:group-hover:bg-transparent">
+          Invite Contacts
+        </span>
+      </button>
+    )
+  }
 
   function RSVPButtonDropdown() {
     // TODO hook up functionality to change RSVP state
@@ -197,7 +211,7 @@ export default function EventPage() {
         <button
           id="dropdownDefaultButton"
           data-dropdown-toggle="dropdown"
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
+          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
           type="button"
           onClick={() => setIsDropdownOpen((isDropdownOpen) => !isDropdownOpen)}
         >
@@ -223,7 +237,7 @@ export default function EventPage() {
           // TODO improve keyboard support, esc to close, outside click to close, arrow keys, accessibility stuff
           <div
             id="dropdown"
-            className="absolute top-11 right-0 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44"
+            className="absolute top-11 right-0 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44"
           >
             <ul
               className="py-2 text-sm text-gray-700 "
@@ -242,18 +256,21 @@ export default function EventPage() {
   return (
     <>
       <NavigationBar />
-      <div className="max-w-screen-xl mx-auto text-gray-700 px-5 mt-8">
+      <div className="max-w-(--breakpoint-xl) mx-auto text-gray-700 px-5 mt-8">
         {eventDetails ? (
           <section className="">
             <div className="flex justify-between">
               <h1 className="text-5xl font-medium tracking-tight">
                 {eventDetails?.name}
               </h1>
-              <RSVPButtonDropdown />
+              <div className="flex justify-right">
+                <InviteContactsButton />
+                <RSVPButtonDropdown />
+              </div>
             </div>
             <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* details card */}
-              <div className="md:col-span-2 flex flex-col gap-2 p-6 bg-white border border-gray-200 rounded-lg shadow ">
+              <div className="md:col-span-2 flex flex-col gap-2 p-6 bg-white border border-gray-200 rounded-lg shadow-sm ">
                 <h3 className="text-lg font-semibold">Details</h3>
                 <div className="flex gap-2 items-center">
                   <svg
@@ -314,7 +331,7 @@ export default function EventPage() {
                 </div>
               </div>
               {/* RSVP card */}
-              <div className="md:col-span-1 p-6 bg-white border border-gray-200 rounded-lg shadow ">
+              <div className="md:col-span-1 p-6 bg-white border border-gray-200 rounded-lg shadow-sm ">
                 <h3 className="text-lg font-semibold">Guests</h3>
                 <div className="mt-2 flex gap-2 items-center">
                   <svg
