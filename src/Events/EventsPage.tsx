@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "./auth/FirebaseAuthContext";
-import NavigationBar from "./NavigationBar";
-import { getUserEventsPublisher } from "./lib/firestore";
-import { UserEvent } from "./types";
+import { useAuth } from "../auth/FirebaseAuthContext";
+import NavigationBar from "../NavigationBar";
+import { getUserEventsPublisher } from "../lib/firestore";
+import { UserEvent } from "../types";
 import { useNavigate } from "react-router-dom";
 
 export default function EventsPage() {

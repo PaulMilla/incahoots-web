@@ -5,10 +5,10 @@ import 'react-toastify/dist/ReactToastify.css';
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext";
 import LandingPage from "./LandingPage";
-import EventPage from "./EventPage";
+import EventPage from "./Events/EventPage";
 import SignInPage from "./SignIn/SignInPage";
-import EventsPage from "./EventsPage";
-import NewEventPage from "./NewEventPage";
+import EventsPage from "./Events/EventsPage";
+import NewEventPage from "./Events/NewEventPage";
 import { ToastContainer } from "react-toastify";
 
 const router = createBrowserRouter([
