@@ -1,5 +1,5 @@
 import { AuthUser } from "../auth/FirebaseAuthContext";
-import { CreateEventBody, UpdateRsvpBody } from "../types";
+import { CreateEventBody, EventInvitesBody, UpdateRsvpBody } from "../types";
 import { auth } from "./firebaseApp";
 
 // TODO: Should we throw error instead?
@@ -53,3 +53,9 @@ export async function updateRsvp(body: UpdateRsvpBody) {
     const response = await post(`${apiUrl}/updateRsvp`, body) as {success: boolean};
     return response;
 }
+
+export async function inviteContacts(body: EventInvitesBody) {
+    const response = await post(`${apiUrl}/inviteContacts`, body) as {success: boolean};
+    return response;
+}
+

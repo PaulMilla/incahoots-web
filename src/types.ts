@@ -62,3 +62,15 @@ export type UpdateRsvpBody = {
   eventId: string,
   attendeeId: string
 }
+
+export type EventInvitesBody = {
+  eventId: string;
+  newAttendees: AttendeeInvite[];
+}
+
+export type AttendeeInvite = {
+    isHost: boolean;
+    fullName: string;
+    phoneNumber: string;
+    email: string;
+}

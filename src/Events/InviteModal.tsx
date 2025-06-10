@@ -5,99 +5,17 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { getEventAttendeesPublisher } from "@/lib/firestore";
+import { inviteContacts } from "@/lib/inCahootsApi";
 import { filterNullish } from "@/lib/rxjs";
-import { Attendee } from "@/types";
-import { ChevronRight, CircleHelp, FileQuestion, Mail, SquareCheck, SquareX, X } from "lucide-react";
+import { Attendee, AttendeeInvite, EventInvitesBody } from "@/types";
+import { ChevronRight, CircleHelp, FileQuestion, Loader2Icon, Mail, SquareCheck, SquareX, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function InviteModal({ eventId }: { eventId?: string }) {
-  const [people, setPeople] = useState<Person[]>([{
-      id: uuidv4(),
-      idType: "phone",
-      name: "Steph",
-      phone: "2149787410"
-  }, {
-      id: uuidv4(),
-      idType: "email",
-      name: "Daniel",
-      email: "drobertson@gmail.com"
-  }, {
-      id: uuidv4(),
-      idType: "email",
-      email: "other1@gmail.com"
-  }, {
-      id: uuidv4(),
-      idType: "phone",
-      phone: "123-456-76890"
-  }, {
-      id: uuidv4(),
-      idType: "email",
-      name: "Other3",
-      email: "other3@gmail.com"
-  }, {
-      id: uuidv4(),
-      idType: "email",
-      name: "Other4",
-      email: "other4@gmail.com"
-  }, {
-      id: uuidv4(),
-      idType: "email",
-      name: "Other5",
-      email: "other5@gmail.com"
-  }, {
-      id: uuidv4(),
-      idType: "email",
-      name: "Other6",
-      email: "other6@gmail.com"
-  }, {
-      id: uuidv4(),
-      idType: "email",
-      name: "Other7",
-      email: "other7@gmail.com"
-  }, {
-      id: uuidv4(),
-      idType: "email",
-      name: "Other8",
-      email: "other8@gmail.com"
-  }, {
-      id: uuidv4(),
-      idType: "email",
-      name: "Other9",
-      email: "other9@gmail.com"
-  }, {
-      id: uuidv4(),
-      idType: "email",
-      name: "Other10",
-      email: "other10@gmail.com"
-  }, {
-      id: uuidv4(),
-      idType: "email",
-      name: "Other11",
-      email: "other11@gmail.com"
-  }, {
-      id: uuidv4(),
-      idType: "email",
-      name: "Other12",
-      email: "other12@gmail.com"
-  }, {
-      id: uuidv4(),
-      idType: "email",
-      name: "Other13",
-      email: "other13@gmail.com"
-  }, {
-      id: uuidv4(),
-      idType: "email",
-      name: "Other14",
-      email: "other14@gmail.com"
-  }, {
-      id: uuidv4(),
-      idType: "email",
-      name: "Other15",
-      email: "other15@gmail.com"
-  }]);
-
+  const [people, setPeople] = useState<Person[]>([]);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
-
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [dialogState, setDialogState] = useState<"initialized"|"inProgress"|"error">("initialized");
 
   useEffect(() => {
     if (!eventId) {
@@ -128,8 +46,42 @@ export function InviteModal({ eventId }: { eventId?: string }) {
     setPeople([person, ...people])
   }
 
+  const onSubmitInvites = async () => {
+    setDialogState("inProgress");
+    
+    try {
+      const eventInvitesBody = {
+        eventId: eventId ?? "",
+        newAttendees: people.map(x => {
+          return {
+            isHost: false,
+            fullName: x.name ?? "",
+            phoneNumber: x.phone,
+            email: x.email,
+          } as AttendeeInvite
+        })
+      } as EventInvitesBody;
+
+      console.log("Submitting invites", eventInvitesBody);
+      const response = await inviteContacts(eventInvitesBody);
+
+      if (response.success) {
+        console.log("Invites sent successfully");
+        setPeople([]); // Clear the invite list after sending
+        setDialogState("initialized");
+        setIsDialogOpen(false); // Close the dialog after sending invites
+      } else {
+        setDialogState("error");
+        console.error("Failed to send invites", response);
+      }
+    } catch (error) {
+      setDialogState("error");
+      console.log("Error sending invites", error);
+    }
+  }
+
   return (
-    <Dialog>
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">Invite Contacts</Button>
       </DialogTrigger>
@@ -171,7 +123,19 @@ export function InviteModal({ eventId }: { eventId?: string }) {
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
-          <Button type="submit">Save Invites</Button>
+          {dialogState === "inProgress" && (
+            <Button size="sm" disabled>
+              <Loader2Icon className="animate-spin" />
+            </Button>
+          )}
+          {dialogState === "error" && (
+            <Button variant="destructive" size="sm" onClick={() => setDialogState("initialized")}>
+              Error sending invites, try again
+            </Button>
+          )}
+          {dialogState === "initialized" && (
+            <Button type="submit" onClick={() => onSubmitInvites()}>Send Invites</Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
