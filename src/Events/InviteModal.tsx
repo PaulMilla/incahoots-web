@@ -23,11 +23,6 @@ export function InviteModal({ eventId }: { eventId?: string }) {
       return;
     }
 
-    // getEventDetailsPublisher(eventId)
-    // .subscribe(eventDetails => {
-    //   setEventDetails(eventDetails)
-    // })
-
     getEventAttendeesPublisher(eventId)
       .pipe(filterNullish())
       .subscribe((attendees: Attendee[]) => {
@@ -167,12 +162,6 @@ function CommandBox({ onAddInvite }: { onAddInvite: (person: Person) => void }) 
         {!page && !searchValue && (
           <CommandEmpty>No recent contacts. Try adding some manually using the quick add option...</CommandEmpty>
         )}
-        {/* <CommandGroup heading="Suggestions">
-          <CommandItem>Calendar</CommandItem>
-          <CommandItem>Search Emoji</CommandItem>
-          <CommandItem>Calculator</CommandItem>
-        </CommandGroup>
-        <CommandSeparator /> */}
         {!page && searchValue && (
           <CommandGroup forceMount heading="Quick add..">
             <CommandItem forceMount onSelect={() => setPages([...pages, 'quickAdd'])} >Quick add contact for {searchValue}..</CommandItem>
