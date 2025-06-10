@@ -34,7 +34,7 @@ export type EventDetails = {
 };
 
 export type Attendee = {
-  rsvpState: string;
+  rsvpState: "going" | "notGoing" | "maybe" | "unknown";
   eventId: string;
   isHost: boolean;
   fullName: string;
