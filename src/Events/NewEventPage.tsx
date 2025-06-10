@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { createEvent } from "./lib/inCahootsApi"
-import { CreateEventBody } from "./types";
+import { createEvent } from "../lib/inCahootsApi"
+import { CreateEventBody } from "../types";
 import { useNavigate } from "react-router-dom";
-import NavigationBar from "./NavigationBar";
+import NavigationBar from "../NavigationBar";
 
 export default function NewEventPage() {
     const navigate = useNavigate();

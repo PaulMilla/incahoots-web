@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getEventAttendeesPublisher, getEventDetailsPublisher, getMyAttendeeId } from "./lib/firestore";
-import { filterNullish } from "./lib/rxjs";
-import { Attendee, EventDetails, UpdateRsvpBody } from "./types";
-import { createGoogleMapsLink } from "./utils/googleMaps";
-import { convertFirestoreTimestampToDate } from "./utils/timestamps";
-import NavigationBar from "./NavigationBar";
+import { getEventAttendeesPublisher, getEventDetailsPublisher, getMyAttendeeId } from "../lib/firestore";
+import { filterNullish } from "../lib/rxjs";
+import { Attendee, EventDetails, UpdateRsvpBody } from "../types";
+import { createGoogleMapsLink } from "../utils/googleMaps";
+import { convertFirestoreTimestampToDate } from "../utils/timestamps";
+import NavigationBar from "../NavigationBar";
 import { map } from 'rxjs'
-import * as api from "./lib/inCahootsApi";
-import { useAuth } from "./auth/FirebaseAuthContext";
+import * as api from "../lib/inCahootsApi";
+import { useAuth } from "../auth/FirebaseAuthContext";
+import { InviteModal } from "./InviteModal";
 
 type CategorizedAttendees = {
   hosts: Attendee[];
@@ -167,20 +168,6 @@ export default function EventPage() {
     ? createGoogleMapsLink(eventDetails?.location.address)
     : null;
   
-  function InviteContactsButton() {
-    return (
-      <button
-        className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-linear-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-hidden focus:ring-cyan-200 dark:focus:ring-cyan-800"
-        onClick={() => alert("TODO: Popup invite modal")}
-        type="button"
-      >
-        <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent dark:group-hover:bg-transparent">
-          Invite Contacts
-        </span>
-      </button>
-    )
-  }
-
   function RSVPButtonDropdown() {
     // TODO hook up functionality to change RSVP state
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -264,7 +251,7 @@ export default function EventPage() {
                 {eventDetails?.name}
               </h1>
               <div className="flex justify-right">
-                <InviteContactsButton />
+                <InviteModal eventId={eventId} />
                 <RSVPButtonDropdown />
               </div>
             </div>
