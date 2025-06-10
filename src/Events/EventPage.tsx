@@ -168,12 +168,6 @@ export default function EventPage() {
     ? createGoogleMapsLink(eventDetails?.location.address)
     : null;
   
-  function InviteContactsButton() {
-    return (
-      <InviteModal />
-    )
-  }
-
   function RSVPButtonDropdown() {
     // TODO hook up functionality to change RSVP state
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -257,7 +251,7 @@ export default function EventPage() {
                 {eventDetails?.name}
               </h1>
               <div className="flex justify-right">
-                <InviteContactsButton />
+                <InviteModal eventId={eventId} />
                 <RSVPButtonDropdown />
               </div>
             </div>

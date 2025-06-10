@@ -4,10 +4,13 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { ChevronRight, FileQuestion, X } from "lucide-react";
-import { useState } from "react";
+import { getEventAttendeesPublisher } from "@/lib/firestore";
+import { filterNullish } from "@/lib/rxjs";
+import { Attendee } from "@/types";
+import { ChevronRight, CircleHelp, FileQuestion, Mail, SquareCheck, SquareX, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
-export function InviteModal() {
+export function InviteModal({ eventId }: { eventId?: string }) {
   const [people, setPeople] = useState<Person[]>([{
       id: uuidv4(),
       idType: "phone",
@@ -93,14 +96,28 @@ export function InviteModal() {
       email: "other15@gmail.com"
   }]);
 
-  const alreadyInvited: Person[] = [
-    {
-      id: uuidv4(),
-      idType: "phone",
-      name: "Paul",
-      phone: "8326222518"
+  const [attendees, setAttendees] = useState<Attendee[]>([]);
+
+
+  useEffect(() => {
+    if (!eventId) {
+      console.error("Event id not found in query params");
+      return;
     }
-  ]
+
+    // getEventDetailsPublisher(eventId)
+    // .subscribe(eventDetails => {
+    //   setEventDetails(eventDetails)
+    // })
+
+    getEventAttendeesPublisher(eventId)
+      .pipe(filterNullish())
+      .subscribe((attendees: Attendee[]) => {
+        setAttendees(attendees);
+      });
+
+  }, [eventId]);
+
 
   const removeInvite = (person: Person) => {
     const newPeople = people.filter(x => x != person)
@@ -134,14 +151,14 @@ export function InviteModal() {
           <div id="DialogBody-Right" className="md:min-w-[200px] flex-grow">
             <h1 className="text-lg">Guest List</h1>
             <ScrollArea className="h-72 rounded-md border p-2">
-              {people.map(x => 
+              {people.map(x =>
                 <GuestListItem key={x.id} person={x} actionType={ActionType.remove} onActionClicked={() => removeInvite(x)} />
               )}
             </ScrollArea>
             <h1 className="pt-10">Already Invited</h1>
             <ScrollArea className="max-h-72 rounded-md border p-2">
-              {alreadyInvited.map(x => 
-                <GuestListItem key={x.id} person={x} actionType={ActionType.remove} onActionClicked={() => removeInvite(x)} />
+              {attendees.map(x =>
+                <GuestListAttendee key={x.id} attendee={x} />
               )}
             </ScrollArea>
           </div>
@@ -224,7 +241,7 @@ function QuickAddForm({ searchValue, onSubmit }: { searchValue: string, onSubmit
       <Input placeholder="Email (optional)" value={email} autoFocus={searchType == 'name'} type="email" onChange={e => setEmail(e.currentTarget.value)}></Input>
       <Input placeholder="Phone (optional)" value={phone} type="phone" onChange={e => setPhone(e.currentTarget.value)}></Input>
       <Button asChild variant={"outline"}>
-        <ChevronRight onClick={() => { onSubmit({ id:uuidv4(), name, email, phone } as Person) }} />
+        <ChevronRight onClick={() => { onSubmit({ id: uuidv4(), name, email, phone } as Person) }} />
       </Button>
     </div>
   )
@@ -234,6 +251,18 @@ enum ActionType {
   'remove',
   'add',
   'moreInfo'
+}
+
+function GuestListAttendee({ attendee }: { attendee: Attendee, actionType?: ActionType, onActionClicked?: () => void }) {
+  return (
+    <div className="flex space-x-2 justify-between">
+      <span key={attendee.id}>{attendee.fullName ?? "???"}</span>
+      {attendee.rsvpState === 'going' && (<SquareCheck />)}
+      {attendee.rsvpState === 'notGoing' && (<SquareX />)}
+      {attendee.rsvpState === 'maybe' && (<CircleHelp />)}
+      {attendee.rsvpState === 'unknown' && (<Mail />)}
+    </div>
+  )
 }
 
 function GuestListItem({ person, actionType, onActionClicked }: { person: Person, actionType?: ActionType, onActionClicked?: () => void }) {
