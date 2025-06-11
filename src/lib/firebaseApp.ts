@@ -16,7 +16,7 @@ const firebaseConfig = {
     authDomain: "in-cahoots-52c24.firebaseapp.com",
     // authDomain: "incahoots.rsvp",
     projectId: "in-cahoots-52c24",
-    storageBucket: "in-cahoots-52c24.appspot.com",
+    storageBucket: 'in-cahoots-52c24.firebasestorage.app',
     messagingSenderId: "618787522440",
     appId: "1:618787522440:web:790c7c46c845beb8289c3d",
     measurementId: "G-ZTF5EEPK8R"
@@ -26,11 +26,9 @@ export const app = initializeApp(firebaseConfig);
 export const analytics = getAnalytics(app);
 
 export const auth = getAuth(app)
-
-export const authPublisher: Observable<Auth> = authState(auth)
-
 // Only connect to emulator if AUTH_URL is defined and using localhost
 const authUrlString = import.meta.env.VITE_AUTH_URL
 if (authUrlString && isLocalhost(authUrlString)) {
     connectAuthEmulator(auth, authUrlString);
 }
+export const authPublisher: Observable<Auth> = authState(auth)

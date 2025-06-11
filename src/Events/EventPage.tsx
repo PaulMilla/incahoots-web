@@ -10,6 +10,7 @@ import { map } from 'rxjs'
 import * as api from "../lib/inCahootsApi";
 import { useAuth } from "../auth/FirebaseAuthContext";
 import { InviteModal } from "./InviteModal";
+import { UploadPhotosModal } from "./UploadPhotosModal";
 
 type CategorizedAttendees = {
   hosts: Attendee[];
@@ -268,9 +269,7 @@ export default function EventPage() {
                   >
                     <path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z" />
                   </svg>
-                  {convertFirestoreTimestampToDate(
-                    eventDetails?.startDate.seconds
-                  )}
+                  {convertFirestoreTimestampToDate(eventDetails?.startDate.seconds)}
                 </div>
 
                 {locationlabel && (
@@ -340,6 +339,11 @@ export default function EventPage() {
                   <AttendeeList attendees={categorizedAttendees.maybeList} />
                   <AttendeeList attendees={categorizedAttendees.unknownList} />
                 </div>
+              </div>
+              {/* Photos card */}
+              <div className="md:col-span-1 p-6 bg-white border border-gray-200 rounded-lg shadow-sm ">
+                <h3 className="text-lg font-semibold">Photos</h3>
+                <UploadPhotosModal eventId={eventId!} />
               </div>
             </div>
           </section>
