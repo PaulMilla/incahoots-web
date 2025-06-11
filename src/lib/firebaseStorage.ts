@@ -1,4 +1,4 @@
-import { connectStorageEmulator, getDownloadURL, getStorage, ref, uploadBytes, uploadBytesResumable } from "firebase/storage";
+import { connectStorageEmulator, getDownloadURL, getStorage, list, ref, uploadBytes, uploadBytesResumable } from "firebase/storage";
 import { app } from "./firebaseApp";
 import { isLocalhost } from "@/utils/isLocalHost";
 
@@ -95,4 +95,28 @@ export async function uploadEventPhotosWithProcess(eventId: string, file: File, 
       onProgressChanged(100); // Call the progress callback with 100% when done
     }
   );
+}
+
+export async function getEventPhotos(eventId: string): Promise<string[]> {
+  const path = `events/${eventId}/photos`;
+  const storageRef = ref(storage, path);
+
+  try {
+    const listResult = await list(storageRef, {
+      maxResults: 10, // Adjust as needed
+      // You can also specify a prefix if you want to filter files
+      // prefix: 'some/prefix/',
+      // Use `listAll` if you want to list all items in the directory
+      // listAll: true,
+    });
+    const photoUrls: string[] = [];
+    for (const itemRef of listResult.items) {
+      const url = await getDownloadURL(itemRef);
+      photoUrls.push(url);
+    }
+    return photoUrls;
+  } catch (error) {
+    console.error("Error fetching event photos:", error);
+    throw error;
+  }
 }

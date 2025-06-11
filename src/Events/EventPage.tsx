@@ -11,6 +11,7 @@ import * as api from "../lib/inCahootsApi";
 import { useAuth } from "../auth/FirebaseAuthContext";
 import { InviteModal } from "./InviteModal";
 import { UploadPhotosModal } from "./UploadPhotosModal";
+import { getEventPhotos } from "@/lib/firebaseStorage";
 
 type CategorizedAttendees = {
   hosts: Attendee[];
@@ -86,6 +87,7 @@ function LoadingSpinner() {
 export default function EventPage() {
   const [eventDetails, setEventDetails] = useState<EventDetails>();
   const [myAttendeeId, setMyAttendeeId] = useState<string>();
+  const [eventPhotos, setEventPhotos] = useState<string[]>([]);
   const [categorizedAttendees, setCategorizedAttendees] =
     useState<CategorizedAttendees>({
       hosts: [],
@@ -155,6 +157,8 @@ export default function EventPage() {
       setCategorizedAttendees(categorizedAttendees);
     })
 
+    getEventPhotos(eventId)
+    .then(setEventPhotos)
 
     getMyAttendeeId(user?.uid, eventId)
     .then(setMyAttendeeId);
@@ -344,6 +348,22 @@ export default function EventPage() {
               <div className="md:col-span-1 p-6 bg-white border border-gray-200 rounded-lg shadow-sm ">
                 <h3 className="text-lg font-semibold">Photos</h3>
                 <UploadPhotosModal eventId={eventId!} />
+                { eventPhotos.length > 0 ? (
+                  <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {eventPhotos.map((photoUrl, index) => (
+                      <img
+                        key={index}
+                        src={photoUrl}
+                        alt={`Event photo ${index + 1}`}
+                        className="w-full h-auto rounded-md object-cover"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-sm text-gray-600">
+                    No photos uploaded yet.
+                  </p>
+                )}
               </div>
             </div>
           </section>
