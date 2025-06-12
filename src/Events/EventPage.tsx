@@ -12,6 +12,7 @@ import { useAuth } from "../auth/FirebaseAuthContext";
 import { InviteModal } from "./InviteModal";
 import { UploadPhotosModal } from "./UploadPhotosModal";
 import { getEventPhotos } from "@/lib/firebaseStorage";
+import { DownloadPhotosModal } from "./DownloadPhotosModal";
 
 type CategorizedAttendees = {
   hosts: Attendee[];
@@ -348,6 +349,7 @@ export default function EventPage() {
               <div className="md:col-span-1 p-6 bg-white border border-gray-200 rounded-lg shadow-sm ">
                 <h3 className="text-lg font-semibold">Photos</h3>
                 <UploadPhotosModal eventId={eventId!} />
+                <DownloadPhotosModal eventId={eventId!} />
                 { eventPhotos.length > 0 ? (
                   <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-2">
                     {eventPhotos.map((photoUrl, index) => (
