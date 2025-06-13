@@ -61,6 +61,14 @@ export function getEventDetailsPublisher(eventId: string) {
 }
 
 export function getEventsDetailsPublisher(eventIds: string[]) {
+  // Return an empty observable if no IDs are provided else query() will throw an error
+  if (eventIds.length == 0) {
+    return new Observable<EventDetails[]>(subscriber => {
+      subscriber.next([]);
+      subscriber.complete();
+    });
+  }
+
   const refQuery = query(
     collection(db, "events"),
     where(documentId(), 'in', eventIds)
@@ -77,6 +85,13 @@ export function getEventAttendeesPublisher(eventId: string) {
 }
 
 export function getUserAttendeesPublisher(attendeeIds: string[]) {
+  // Return an empty observable if no IDs are provided else query() will throw an error
+  if (attendeeIds.length == 0) {
+    return new Observable<EventDetails[]>(subscriber => {
+      subscriber.next([]);
+      subscriber.complete();
+    });
+  }
   const refQuery = query(
     collectionGroup(db, "eventAttendees"),
     where('id', 'in', attendeeIds)
