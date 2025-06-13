@@ -12,6 +12,11 @@ import { PhoneSignInFlow } from "./PhoneSignInFlow";
 import { CompleteRegistration } from "./CompleteRegistration";
 import firebase from "firebase/compat/app";
 import * as firebaseui from "firebaseui";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import NavigationBar from "@/NavigationBar";
 
 /* TODO: Implement these providers ourselves and remove this dependency
  * Phone Auth doesn't work
@@ -87,21 +92,6 @@ export default function SignInPage() {
   redirectUrl = redirectUrl !== "/signIn" ? redirectUrl : "/";
   console.log(`RedirectUrl set to ${redirectUrl}`)
 
-  async function googleSignIn() {
-    const provider = new GoogleAuthProvider();
-    provider.addScope('profile');
-    provider.addScope('email');
-    const result = await signInWithPopup(auth, provider);
-
-    // const userCredential = await signInWithPopup(auth, new GoogleAuthProvider())
-    // GoogleAuthProvider.credentialFromResult(userCredential)
-    GoogleAuthProvider.credentialFromResult(result)
-  }
-
-  function goHome() {
-    navigate('/')
-  }
-
   // If we navigate to the /signIn page when fully logged in should we redirect back home,
   // or signOut so that the user can signIn again?
   useEffect(() => {
@@ -118,39 +108,119 @@ export default function SignInPage() {
     }
   })
 
-  const isEmailLink = isSignInWithEmailLink(auth, window.location.href)
-  return user != null ? (
-    <CompleteRegistration />
-  ) : (
-    <section>
-      {
-        SignInOptions.phone == signInOption ? ( <PhoneSignInFlow />) :
-        SignInOptions.emailLink == signInOption || isEmailLink ? ( <EmailSignInFlow /> ) :
-        (
-          <div>
-            <button onClick={() => {setSignInOption(SignInOptions.phone)}}
-                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
-                    type="button"
-            >Phone SignIn</button>
+  const googleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    provider.addScope('profile');
+    provider.addScope('email');
+    const result = await signInWithPopup(auth, provider);
 
-            <button onClick={() => {setSignInOption(SignInOptions.emailLink)}}
-                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
-                    type="button"
-            >Email Link SignIn</button>
+    // const userCredential = await signInWithPopup(auth, new GoogleAuthProvider())
+    // GoogleAuthProvider.credentialFromResult(userCredential)
+    GoogleAuthProvider.credentialFromResult(result)
+  }
 
-            <button onClick={googleSignIn}
-                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
-                    type="button"
-            >Google SignIn</button>
+  const LoginCard = () => {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Login to your account</CardTitle>
+          <CardDescription>
+            Enter your email below to login to your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form>
+            <div className="flex flex-col gap-6">
+              <div className="grid gap-3">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  required
+                />
+              </div>
+              <div className="grid gap-3">
+                <div className="flex items-center">
+                  <Label htmlFor="password">Password</Label>
+                  <a href="#" className="ml-auto inline-block text-sm underline-offset-4 hover:underline">
+                    Forgot your password?
+                  </a>
+                </div>
+                <Input id="password" type="password" required />
+              </div>
+              {/* <div className="flex items-center justify-between">
+                <Label className="cursor-pointer">
+                  <Input type="checkbox" />
+                  Remember me
+                </Label>
+                <a href="#" className="text-sm underline-offset-4 hover:underline">
+                  Need help?
+                </a>
+              </div> */}
+              <div className="flex flex-col gap-3">
+                <Button type="submit" className="w-full">
+                  Login
+                </Button>
+              </div>
 
-            <button onClick={goHome}
-                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
-                    type="button"
-            >Home</button>
+              {/* Or continue with */}
+              <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+                <span className="bg-card text-muted-foreground relative z-10 px-2">
+                  Or continue with
+                </span>
+              </div>
+
+              {/* Alternative login options */}
+              <div className="flex flex-col gap-2">
+                <Button className="w-full" onClick={() => { setSignInOption(SignInOptions.phone) }}>
+                  Phone SignIn
+                </Button>
+                <Button className="w-full" onClick={() => { setSignInOption(SignInOptions.emailLink) }}>
+                  Email Link SignIn
+                </Button>
+                <Button className="w-full" onClick={googleSignIn}>
+                  Google SignIn
+                </Button>
+              </div>
+            </div>
+
+            <p className="mt-4 text-center text-sm">
+              Don&apos;t have an account?
+              <br />
+              <span className="text-xs">You can sign up with one of the options above!</span>
+            </p>
+          </form>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const onResetFlows = () => {
+    setSignInOption(undefined);
+  }
+
+  const isEmailLink = isSignInWithEmailLink(auth, window.location.href);
+
+  return (
+    <>
+      <NavigationBar />
+      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+        <div className="w-full max-w-sm">
+          <div className="flex flex-col gap-6">
+            {user != null ? (<CompleteRegistration />)
+              : SignInOptions.phone == signInOption ? (<PhoneSignInFlow onCancel={onResetFlows} />)
+                : SignInOptions.emailLink == signInOption || isEmailLink ? (<EmailSignInFlow onCancel={onResetFlows} />)
+                  : (<LoginCard />)
+            }
           </div>
-        )
-      }
-      <FirebaseWebUI />
-    </section>
-  );
+          <br />
+          <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
+            By continuing, you are indicating that you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+          </div>
+        </div>
+        <FirebaseWebUI />
+      </div>
+    </>
+  )
 }

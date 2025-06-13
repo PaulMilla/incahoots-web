@@ -5,6 +5,7 @@ import { isSignInWithEmailLink, sendSignInLinkToEmail, signInWithEmailLink } fro
 import { isProfileComplete } from "../auth/FirebaseAuthContext";
 import { CompleteRegistration } from "./CompleteRegistration";
 import { registrationComplete } from "../lib/inCahootsApi";
+import { Button } from "@/components/ui/button";
 
 enum SignInStep {
   enterEmail,
@@ -12,10 +13,25 @@ enum SignInStep {
   completeRegistration
 }
 
-export function EmailSignInFlow() {
+export function EmailSignInFlow({onCancel: onCancel}: {onCancel?: () => void}) {
   const navigate = useNavigate();
   const [email, setEmail] = useState<string>();
   const [signInStep, setSignInStep] = useState<SignInStep>();
+
+  const CancelButton = () => {
+    const onCancelClicked = () => {
+      if (onCancel) {
+        onCancel();
+      }
+    }
+    return (
+      <Button onClick={onCancelClicked}
+        className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
+        type="button"
+        id="cancel-phone-sign-in"
+      >Cancel</Button>
+    )
+  }
 
   async function onEmailSubmit() {
     const currentLocation = window.location.href;
@@ -126,10 +142,11 @@ export function EmailSignInFlow() {
         onChange={x => setEmail(x.target.value)}
         className="outline outline-offset-2 outline-1" />
       <br /> <br />
-      <button onClick={onEmailSubmit}
+      <Button onClick={onEmailSubmit}
         className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
         type="button"
-      >Send email link</button>
+      >Send email link</Button>
+      <CancelButton />
     </form>
   );
 }

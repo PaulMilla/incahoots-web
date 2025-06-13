@@ -10,6 +10,7 @@ import SignInPage from "./SignIn/SignInPage";
 import EventsPage from "./Events/EventsPage";
 import NewEventPage from "./Events/NewEventPage";
 import { ToastContainer } from "react-toastify";
+import { ThemeProvider } from "@/components/ui/theme-provider";
 
 const router = createBrowserRouter([
   {
@@ -36,9 +37,11 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-      <ToastContainer />
-    </AuthProvider>
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <AuthProvider>
+        <RouterProvider router={router} />
+        <ToastContainer />
+      </AuthProvider>
+    </ThemeProvider>
   </React.StrictMode>
 );
