@@ -6,6 +6,7 @@ import { signOut } from "firebase/auth";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "./components/ui/navigation-menu";
 import { Button, buttonVariants } from "./components/ui/button";
 import { VariantProps } from "class-variance-authority";
+import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
 
 type NavButtonProps = React.ComponentProps<"button"> & VariantProps<typeof buttonVariants> & { asChild?: boolean }
 type NavLinkProps = { href: string } & NavButtonProps
@@ -78,18 +79,10 @@ export default function NavigationBar() {
           {user ? (
             <>
               <NavigationMenuTrigger>
-                {user.photoURL ? (
-                  <img
-                    className="w-8 h-8 rounded-full"
-                    src={user.photoURL}
-                    alt="user photo"
-                  />
-                ) : ( // todo: default when no photoURL is set yet
-                  <img
-                    className="w-8 h-8 rounded-full"
-                    alt="user photo"
-                  />
-                )}
+                <Avatar>
+                  <AvatarImage src={user.photoURL ?? undefined} />
+                  <AvatarFallback>{user.displayName?.split(' ').slice(0, 2).map(x => x[0]) ?? "??"}</AvatarFallback>
+                </Avatar>
               </NavigationMenuTrigger>
               <NavigationMenuContent>
                 <div id="profileHeader" className="px-4 py-3">
