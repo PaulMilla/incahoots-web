@@ -7,6 +7,9 @@ import { useNavigate } from "react-router-dom";
 import { isProfileComplete } from "../auth/FirebaseAuthContext";
 import { CompleteRegistration } from "./CompleteRegistration";
 import { toast } from "react-toastify";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 enum SignInStep {
   phoneSignIn,
@@ -14,11 +17,26 @@ enum SignInStep {
   completeRegistration
 }
 
-export function PhoneSignInFlow() {
+export function PhoneSignInFlow({onCancel: onCancel}: {onCancel?: () => void}) {
   const redirectUrl = "/"
 
   const [signInStep, setSignInStep] = useState<SignInStep>(SignInStep.phoneSignIn);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult>();
+
+  const onCancelClicked = () => {
+    if (onCancel) {
+      onCancel();
+    }
+  }
+  const CancelButton = () => {
+    return (
+      <Button onClick={onCancelClicked}
+        className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
+        type="button"
+        id="cancel-phone-sign-in"
+      >Cancel</Button>
+    )
+  }
 
   function RequestPhoneNumberView() {
     // `value` will be the parsed phone number in E.164 format.
@@ -63,11 +81,16 @@ export function PhoneSignInFlow() {
           defaultCountry="US"
           value={phoneNumber}
           onChange={setPhoneNumber} />
-        <button onClick={onSubmitPhone}
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
+
+        <br />
+
+        <Button onClick={onSubmitPhone}
+          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center"
           type="button"
           id="submit-phone"
-        >Send Text</button>
+        >Send Text</Button>
+
+        <CancelButton />
       </div>
     );
   }
@@ -108,31 +131,46 @@ export function PhoneSignInFlow() {
 
     return (
       <div>
-        <input
+        <Input
           value={verifyCode}
           onChange={x => setVerifyCode(x.target.value)}
-          className="outline outline-offset-2 outline-1" />
-        <button onClick={onSubmitCode}
+        />
+
+        <br />
+
+        <Button onClick={onSubmitCode}
           className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
           type="button"
           id="submit-phone-code"
-        >Verify Code</button>
+        >Verify Code</Button>
+
+        <CancelButton />
       </div>
     );
   }
 
 
   return (
-    <div>
-      {SignInStep.phoneSignIn == signInStep ? (
-        <RequestPhoneNumberView />
-      ) : SignInStep.phoneConfirmation == signInStep ? (
-        <VerifyCodeView />
-      ) : SignInStep.completeRegistration == signInStep ? (
-        <CompleteRegistration />
-      ) : (
-        <div>Something, somewhere is wrong</div>
-      )}
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          Phone SignIn
+        </CardTitle>
+        <CardDescription>
+          Enter your phone details below to login to your account
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {SignInStep.phoneSignIn == signInStep ? (
+          <RequestPhoneNumberView />
+        ) : SignInStep.phoneConfirmation == signInStep ? (
+          <VerifyCodeView />
+        ) : SignInStep.completeRegistration == signInStep ? (
+          <CompleteRegistration />
+        ) : (
+          <div>Something, somewhere is wrong</div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

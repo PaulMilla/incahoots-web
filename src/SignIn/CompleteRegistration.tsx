@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthUser, useAuth } from "../auth/FirebaseAuthContext";
 import { registrationComplete } from "../lib/inCahootsApi";
 import { toast } from "react-toastify";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function CompleteRegistration() {
   const redirectUrl = "/"; // TODO: Hook up redirectUrl to go back to where the user was before
@@ -165,69 +166,77 @@ export function CompleteRegistration() {
   }
   
   return (
-    <div>
-      {verificationId !== undefined ? (
-        <form>
-          <label>enter verification code: </label>
-          <input
-            value={code}
-            onChange={x => setCode(x.target.value)}
-            className="outline outline-offset-2 outline-1" />
-          <br /> <br />
-          <button onClick={onCodeSubmit}
-            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
-            type="button"
-            id={submitId}
-          >Complete Profile</button>
-          <button onClick={onQuit}
-            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
-            type="button"
-            id={submitId}
-          >Quit</button>
-        </form>
-      ) : (
-        <form>
-          <label>firstName: </label>
-          <input
-            value={firstName}
-            onChange={x => setFirstName(x.target.value)}
-            className="outline outline-offset-2 outline-1" />
-          <br /> <br />
-          <label>lastName: </label>
-          <input
-            value={lastName}
-            onChange={x => setLastName(x.target.value)}
-            className="outline outline-offset-2 outline-1" />
-          <br /> <br />
-          <label>phoneNumber: </label>
-          <PhoneInput
-            international
-            countryCallingCodeEditable={false}
-            placeholder="Enter phone number"
-            defaultCountry="US"
-            value={phone}
-            disabled={hasPhoneNumber ? true : false}
-            onChange={setPhone} />
-          <br /> <br />
-          <label>email: </label>
-          <input
-            value={email}
-            onChange={x => setEmail(x.target.value)}
-            disabled={hasEmail ? true : false}
-            className="outline outline-offset-2 outline-1" />
-          <br /> <br />
-          <button onClick={onFormSubmit}
-            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
-            type="button"
-            id={submitId}
-          >Complete Profile</button>
-          <button onClick={onQuit}
-            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
-            type="button"
-            id={submitId}
-          >Quit</button>
-        </form>
-      )}
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Complete Registration</CardTitle>
+        <CardDescription>
+          Enter your details below to complete your profile
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {verificationId !== undefined ? (
+          <form>
+            <label>enter verification code: </label>
+            <input
+              value={code}
+              onChange={x => setCode(x.target.value)}
+              className="outline outline-offset-2 outline-1" />
+            <br /> <br />
+            <button onClick={onCodeSubmit}
+              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
+              type="button"
+              id={submitId}
+            >Complete Profile</button>
+            <button onClick={onQuit}
+              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
+              type="button"
+              id={submitId}
+            >Quit</button>
+          </form>
+        ) : (
+          <form>
+            <label>firstName: </label>
+            <input
+              value={firstName}
+              onChange={x => setFirstName(x.target.value)}
+              className="outline outline-offset-2 outline-1" />
+            <br /> <br />
+            <label>lastName: </label>
+            <input
+              value={lastName}
+              onChange={x => setLastName(x.target.value)}
+              className="outline outline-offset-2 outline-1" />
+            <br /> <br />
+            <label>phoneNumber: </label>
+            <PhoneInput
+              international
+              countryCallingCodeEditable={false}
+              placeholder="Enter phone number"
+              defaultCountry="US"
+              value={phone}
+              disabled={hasPhoneNumber ? true : false}
+              onChange={setPhone} />
+            <br /> <br />
+            <label>email: </label>
+            <input
+              value={email}
+              onChange={x => setEmail(x.target.value)}
+              disabled={hasEmail ? true : false}
+              className="outline outline-offset-2 outline-1" />
+            <br /> <br />
+            <button onClick={onFormSubmit}
+              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
+              type="button"
+              id={submitId}
+            >Complete Profile</button>
+            <button onClick={onQuit}
+              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
+              type="button"
+              id={submitId}
+            >Quit</button>
+          </form>
+        )}
+      </CardContent>
+    </Card>
   );
 }
