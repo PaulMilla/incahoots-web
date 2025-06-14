@@ -60,7 +60,7 @@ export async function inviteContacts(body: EventInvitesBody) {
 }
 
 export async function getDownloadAllUrl(eventId: string) {
-    const response = await post(`${apiUrl}/events/${eventId}/photos/downloadAll`, {eventId}) as {success: boolean, downloadURL: string};
+    const response = await post(`${apiUrl}/events/${eventId}/media/downloadAll`, {eventId}) as {success: boolean, downloadURL: string};
     console.log("Download all URL response:", response);
     return response.downloadURL;
 }

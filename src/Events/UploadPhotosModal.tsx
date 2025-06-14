@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { uploadEventPhotosWithProcess } from "@/lib/firebaseStorage";
+import { uploadEventMediaWithProgress } from "@/lib/firebaseStorage";
 import { File, AudioWaveform, FileImage, FolderArchive, Video, X, UploadCloud } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
@@ -132,7 +132,7 @@ function ImageUpload({ eventId }: { eventId: string }) {
     });
 
     const fileUploadBatch = acceptedFiles.map((file) => {
-      uploadEventPhotosWithProcess(eventId, file, (progressValue) => {
+      uploadEventMediaWithProgress(eventId, file, (progressValue) => {
         onUploadProgress(progressValue, file);
       });
     });

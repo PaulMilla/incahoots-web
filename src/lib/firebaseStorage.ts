@@ -39,18 +39,20 @@ export async function uploadEventPhoto(eventId: string, file: File): Promise<str
   return downloadURL;
 }
 
-export async function uploadEventPhotosWithProcess(eventId: string, file: File, onProgressChanged: (progressValue: number)=>void): Promise<void> {
+export async function uploadEventMediaWithProgress(eventId: string, file: File, onProgressChanged: (progressValue: number)=>void): Promise<void> {
   // Create the file metadata
   // https://firebase.google.com/docs/storage/web/file-metadata?authuser=0#file_metadata_properties
   const metadata = {
     contentType: file.type,
+    md5Hash: undefined, // MD5 hash is not automatically generated in Firebase Storage
     customMetadata: {
       'eventId': eventId,
       'fileModified': file.lastModified.toString(),
+      'checksum256': await generateFileHash(file, "SHA-256")
     }
   };
 
-  const path = `events/${eventId}/photos/${file.name}`;
+  const path = `events/${eventId}/media/${file.name}`;
   const storageRef = ref(storage, path);
   const uploadTask = uploadBytesResumable(storageRef, file, metadata);
 
@@ -98,7 +100,7 @@ export async function uploadEventPhotosWithProcess(eventId: string, file: File, 
 }
 
 export async function getEventPhotos(eventId: string): Promise<string[]> {
-  const path = `events/${eventId}/photos`;
+  const path = `events/${eventId}/media`;
   const storageRef = ref(storage, path);
 
   try {
@@ -119,4 +121,38 @@ export async function getEventPhotos(eventId: string): Promise<string[]> {
     console.error("Error fetching event photos:", error);
     throw error;
   }
+}
+
+// TODO: Is this safe to do on the client? Should it be done server-side?
+// Generate a SHA-1 or SHA-256 hash of a file using the FileReader and SubtleCrypto API
+const generateFileHash = async (file: File, algorithm: "SHA-1"|"SHA-256" = "SHA-1"): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = async (event) => {
+      if (event.target && event.target.result instanceof ArrayBuffer) {
+        try {
+          const hashBuffer = await window.crypto.subtle.digest(
+            algorithm,
+            event.target.result
+          );
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          const hashHex = hashArray
+            .map((byte) => byte.toString(16).padStart(2, "0"))
+            .join("");
+          resolve(hashHex);
+        } catch (error) {
+          reject(error);
+        }
+      } else {
+        reject(new Error("Failed to read file."));
+      }
+    };
+
+    reader.onerror = () => {
+      reject(new Error("Error reading file."));
+    };
+
+    reader.readAsArrayBuffer(file);
+  });
 }
