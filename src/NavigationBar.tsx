@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { LoginState, useAuth } from "./auth/FirebaseAuthContext";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, LinkProps, useLocation, useNavigate } from "react-router-dom";
 import { auth } from "./lib/firebaseApp";
 import { signOut } from "firebase/auth";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "./components/ui/navigation-menu";
@@ -8,22 +8,22 @@ import { Button, buttonVariants } from "./components/ui/button";
 import { VariantProps } from "class-variance-authority";
 import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
 
-type NavButtonProps = React.ComponentProps<"button"> & VariantProps<typeof buttonVariants> & { asChild?: boolean }
-type NavLinkProps = { href: string } & NavButtonProps
+type NavButtonProps = React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>;
+type NavLinkProps = React.PropsWithChildren<LinkProps> & React.RefAttributes<HTMLAnchorElement>;
 
 /** Recommended way to use client-side navigation in Radix UI NavigationMenu:
- * https://www.radix-ui.com/primitives/docs/components/navigate = useNavigate();
+ * https://www.radix-ui.com/primitives/docs/components/navigate
  */
-function NavLink({ href, variant="ghost", ...props } : NavLinkProps) {
-  const navigate = useNavigate();
-	const pathname = useLocation().pathname;
-	const isActive = href === pathname;
+function NavLink({ to, children, ...props }: NavLinkProps) {
+  const isActive = (to === useLocation().pathname);
 
-	return (
-		<NavigationMenuLink asChild active={isActive}>
-			<Button onClick={() => navigate(href)} variant={variant} className="NavigationMenuLink" {...props} />
-		</NavigationMenuLink>
-	);
+  return (
+    <NavigationMenuLink asChild active={isActive}>
+      <Link to={to} {...props}>
+        {children}
+      </Link>
+    </NavigationMenuLink>
+  );
 };
 
 function NavButton({ ...props }: NavButtonProps) {
@@ -53,19 +53,19 @@ export default function NavigationBar() {
         console.log(`User successfully signedIn`)
         return;
     }
-  })
+  });
 
   const logOut = async () => {
     await signOut(auth);
     navigate(`/`);
-  }
+  };
 
   return (
     <NavigationMenu delayDuration={600} viewport={false} className="max-w-(--breakpoint-xl) flex flex-wrap items-center justify-between mx-auto p-4">
       {/* Left side of nav bar */}
       <NavigationMenuList className="flex items-center justify-between w-full md:w-auto space-x-3 rtl:space-x-reverse">
         <NavigationMenuItem className="flex items-center space-x-3 rtl:space-x-reverse">
-          <NavLink href="/" className="flex items-center">
+          <NavLink to="/" className="flex items-center">
             <span className="self-center text-2xl font-semibold whitespace-nowrap">
               InCahoots
             </span>
@@ -75,6 +75,11 @@ export default function NavigationBar() {
 
       {/* Right side of nav bar */}
       <NavigationMenuList className="flex items-center justify-between w-full md:w-auto space-x-3 rtl:space-x-reverse">
+        <NavigationMenuItem className="md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
+          <NavLink to="/newEvent">
+            + New Event
+          </NavLink>
+        </NavigationMenuItem>
         <NavigationMenuItem className="md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
           {user ? (
             <>
@@ -99,7 +104,7 @@ export default function NavigationBar() {
                 <ul className="py-2" aria-labelledby="user-menu-button">
                   <li>
                     <NavLink
-                      href="/events"
+                      to="/events"
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 "
                     >
                       Events
@@ -107,7 +112,7 @@ export default function NavigationBar() {
                   </li>
                   <li>
                     <NavLink
-                      href="#"
+                      to="#"
                       onClick={() => alert("TODO: Settings")}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 "
                     >
@@ -127,7 +132,7 @@ export default function NavigationBar() {
               </NavigationMenuContent>
             </>
           ) : (
-            <NavLink href="/signIn" variant="link" className="text-sm hover:underline">
+            <NavLink to="/signIn" className="text-sm hover:underline">
               Login
             </NavLink>
           )}
