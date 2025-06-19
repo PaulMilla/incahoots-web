@@ -53,9 +53,13 @@ export type CreateEventBody = {
     startDate: string,
     endDate: string,
     location: {
-        name: string
+        name: string,
+        address?: string,
+        geoPoint?: GeoPoint,
     },
 }
+
+export type UpdateEventBody = CreateEventBody & { id: string }
 
 export type UpdateRsvpBody = {
   rsvpState: string,

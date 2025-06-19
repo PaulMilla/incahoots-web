@@ -55,7 +55,9 @@ export function getEventDetailsPublisher(eventId: string) {
       if (eventDetails == null) {
         return undefined
       }
-      return eventDetails as EventDetails
+      const details = eventDetails as EventDetails;
+      details.id = eventId;
+      return details;
     })
   )
 }

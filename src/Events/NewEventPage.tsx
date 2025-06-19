@@ -29,7 +29,7 @@ export default function NewEventPage() {
 
     const buttonClassName = "outline-solid outline-offset-2 outline-1"
     return (
-        <div>
+        <>
             <NavigationBar />
             <form className="py-8 px-4 mx-auto max-w-(--breakpoint-xl) text-left lg:py-16">
                 <label>eventName: </label>
@@ -67,6 +67,6 @@ export default function NewEventPage() {
                     type="button"
                 >Create</button>
             </form>
-        </div>
+        </>
     )
 }
