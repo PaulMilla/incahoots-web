@@ -1,72 +1,65 @@
 import { useState } from "react";
 import { createEvent } from "../lib/inCahootsApi"
-import { CreateEventBody } from "../types";
+import { CreateEventBody, NewEventDetails } from "../types";
 import { useNavigate } from "react-router-dom";
 import NavigationBar from "../NavigationBar";
+import { convertDateToFirestoreTimestamp, convertFirestoreTimestampToIsoString } from "@/utils/timestamps";
+import { Button } from "@/components/ui/button";
+import { EditableDetailsCard, EditableEventTitle } from "./EditableDetailsCard";
 
 export default function NewEventPage() {
     const navigate = useNavigate();
-    const [eventName, setEventName] = useState<string>("Paul's Event!");
-    const [bodyText, setBodyText] = useState<string>("description goes here...");
-    const [startTime, setStartTime] = useState<string>(Date());
-    const [endTime, setEndTime] = useState<string>(Date());
-    const [locationName, setLocationName] = useState<string>("Mi casa");
+    const [newEventDetails] = useState<NewEventDetails>(
+        {
+            // TODO: Use momentJS to default to the weekend
+            startDate: convertDateToFirestoreTimestamp(new Date())
+        }
+    );
 
     async function onCreateNewEvent() {
-        const body: CreateEventBody = {
-            name: eventName,
-            bodyText: bodyText,
-            startDate: startTime,
-            endDate: endTime,
-            location: {
-                name: locationName
+        const validateNewEvent = (event: NewEventDetails) => {
+            if (!(event.location?.name || event.location?.customLocation)) {
+                console.error(`validation failed: event location is invalid`);
+                return false;
             }
+
+            return event;
         };
-        const response = await createEvent(body);
-        console.info(response)
-        navigate(`/events/${response.eventId}`)
+
+        try {
+            if (!validateNewEvent(newEventDetails)) {
+                console.debug(`TODO: react to invalid fields in new event`);
+                return;
+            }
+
+            const body: CreateEventBody = {
+                name: newEventDetails.name!,
+                bodyText: newEventDetails.bodyText!,
+                startDate: convertFirestoreTimestampToIsoString(newEventDetails.startDate),
+                endDate: convertFirestoreTimestampToIsoString(newEventDetails.endDate ?? newEventDetails.startDate),
+                location: {
+                    name: newEventDetails.location?.name ?? newEventDetails.location?.customLocation ?? "oops, try again"
+                }
+            };
+            const response = await createEvent(body);
+            console.info(response);
+            navigate(`/events/${response.eventId}`);
+        } catch (error) {
+            console.error(`Error after trying to create new event`, error);
+        }
     }
 
-    const buttonClassName = "outline-solid outline-offset-2 outline-1"
     return (
         <>
             <NavigationBar />
-            <form className="py-8 px-4 mx-auto max-w-(--breakpoint-xl) text-left lg:py-16">
-                <label>eventName: </label>
-                <input
-                value={eventName}
-                onChange={x => setEventName(x.target.value)}
-                className={buttonClassName} />
-                <br /> <br />
-                <label>bodyText: </label>
-                <input
-                value={bodyText}
-                onChange={x => setBodyText(x.target.value)}
-                className={buttonClassName} />
-                <br /> <br />
-                <label>startTime: </label>
-                <input
-                value={startTime}
-                onChange={x => setStartTime(x.target.value)}
-                className={buttonClassName} />
-                <br /> <br />
-                <label>endTime: </label>
-                <input
-                value={endTime}
-                onChange={x => setEndTime(x.target.value)}
-                className={buttonClassName} />
-                <br /> <br />
-                <label>location: </label>
-                <input
-                value={locationName}
-                onChange={x => setLocationName(x.target.value)}
-                className={buttonClassName} />
-                <br /> <br />
-                <button onClick={onCreateNewEvent}
-                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
-                    type="button"
-                >Create</button>
-            </form>
+            <div className="py-8 px-4 mx-auto max-w-(--breakpoint-xl) text-left lg:py-16">
+                <EditableEventTitle
+                    eventDetails={newEventDetails}
+                    isEditing={true}
+                />
+                <EditableDetailsCard eventDetails={newEventDetails} eventHosts={[]} isEditing={true} />
+                <Button onClick={onCreateNewEvent}>Create event</Button>
+            </div>
         </>
     )
 }

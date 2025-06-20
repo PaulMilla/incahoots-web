@@ -12,15 +12,24 @@ type GeoPoint = {
 };
 
 type Location = {
-  address: string;
+  address?: string;
   name: string;
-  geoPoint: GeoPoint;
+  geoPoint?: GeoPoint;
   customLocation?: string;
 };
 
 export type UserEventInfo = {
   eventId: string;
   myAttendeeId: string;
+};
+
+export type NewEventDetails = {
+  name?: string;
+  startDate: Timestamp;
+  endDate?: Timestamp;
+  bodyText?: string;
+  location?: Location;
+  attendeeIds?: string[];
 };
 
 export type EventDetails = {
