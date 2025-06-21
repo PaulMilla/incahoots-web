@@ -2,7 +2,8 @@ import { toast } from "react-toastify";
 import NavigationBar from "./NavigationBar.tsx";
 import { useEffect } from "react";
 import { LoginState, useAuth } from "./auth/FirebaseAuthContext.ts";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "./components/ui/button.tsx";
 
 // Landing marketing page at root route with calls to action to create events and/or login
 function LandingPage() {
@@ -31,10 +32,7 @@ function LandingPage() {
             create, organize, and manage your events with ease.
           </p>
           <div className="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-y-0">
-            <a
-              href="events"
-              className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 "
-            >
+            <Link to={"/signIn"} className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300">
               Get started
               <svg
                 className="w-3.5 h-3.5 ms-2 rtl:rotate-180"
@@ -51,14 +49,13 @@ function LandingPage() {
                   d="M1 5h12m0 0L9 1m4 4L9 9"
                 />
               </svg>
-            </a>
-            <a
-              href="#"
-              className="py-3 px-5 sm:ms-4 text-sm font-medium text-gray-900 focus:outline-hidden bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 "
-              onClick={() => {toast.info("todo")}}
+            </Link>
+            <Button
+              onClick={() => { toast.info("todo") }}
+              className="inline-flex items-center justify-center py-3 px-5 sm:ms-4 text-base font-medium text-gray-900 focus:outline-hidden bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 h-auto"
             >
               Learn more
-            </a>
+            </Button>
           </div>
         </div>
       </section>

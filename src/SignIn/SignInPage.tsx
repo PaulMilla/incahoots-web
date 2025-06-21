@@ -32,7 +32,7 @@ function FirebaseWebUI() {
   // Example: https://github.com/firebase/firebaseui-web/blob/master/demo/public/app.js#L22
   // Live Demo: https://fir-ui-demo-84a6c.firebaseapp.com/
   const uiConfig = {
-    signInSuccessUrl: "/",
+    signInSuccessUrl: "/events",
     // Will use popup for IDP Providers sign-in flow instead of the default, redirect.
     signInFlow: "popup",
     signInOptions: [
@@ -88,23 +88,26 @@ export default function SignInPage() {
 
   const [signInOption, setSignInOption] = useState<SignInOptions>();
   const [searchParams] = useSearchParams();
-  let redirectUrl = searchParams.get('redirectUrl') ?? "/";
-  redirectUrl = redirectUrl !== "/signIn" ? redirectUrl : "/";
-  console.log(`RedirectUrl set to ${redirectUrl}`)
+
+  let redirectUrl = searchParams.get('redirectUrl');
+  redirectUrl = (redirectUrl !== null && redirectUrl !== "/signIn")
+    ? redirectUrl
+    : "/events";
+  console.debug(`RedirectUrl set to ${redirectUrl}`)
 
   // If we navigate to the /signIn page when fully logged in should we redirect back home,
   // or signOut so that the user can signIn again?
   useEffect(() => {
     if (user == null) {
-        console.log(`❗ User is null: ${user}`)
+        console.debug(`❗ User is null: ${user}`)
         return;
     }
-    const isUserProfileComplete = isProfileComplete(user)
-    console.log(`isUserProfileComplete: ${isUserProfileComplete}`)
+    const isUserProfileComplete = isProfileComplete(user);
+    console.debug(`isUserProfileComplete: ${isUserProfileComplete}`);
 
     if (user != null && isUserProfileComplete) {
-      console.log('SignIn complete. Redirecting back home...')
-      navigate('/')
+      console.debug('SignIn complete. Redirecting back home...');
+      navigate(redirectUrl);
     }
   })
 
