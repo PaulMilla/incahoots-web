@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getEventAttendeesPublisher, getEventDetailsPublisher, getMyAttendeeId } from "../lib/firestore";
 import { filterNullish } from "../lib/rxjs";
-import { Attendee, EventDetails, UpdateEventBody, UpdateRsvpBody } from "../types";
+import { Attendee, EventDetails, RsvpState, UpdateEventBody, UpdateRsvpBody } from "../types";
 import { convertFirestoreTimestampToIsoString } from "../utils/timestamps";
 import NavigationBar from "../NavigationBar";
 import { map } from 'rxjs'
@@ -24,13 +24,6 @@ type CategorizedAttendees = {
   maybeList: Attendee[];
   unknownList: Attendee[];
 };
-
-enum RsvpState {
-  going = "going",
-  notGoing = "notGoing",
-  maybe = "maybe",
-  unknown = "unknown"
-}
 
 const RSVP_STATES: {
   [key: string]: {
@@ -64,6 +57,131 @@ function AttendeeList({ attendees }: { attendees: Attendee[] }) {
   );
 }
 
+function MediaCard({ eventId, eventPhotos }: { eventId: string, eventPhotos: string[] }) {
+  return (
+    <div className="md:col-span-1 p-6 bg-white border border-gray-200 rounded-lg shadow-sm ">
+      <h3 className="text-lg font-semibold">Photos</h3>
+      <UploadPhotosModal eventId={eventId!} />
+      <DownloadPhotosModal eventId={eventId!} />
+      {eventPhotos.length > 0 ? (
+        <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-2">
+          {eventPhotos.map((photoUrl, index) => (
+            <img
+              key={index}
+              src={photoUrl}
+              alt={`Event photo ${index + 1}`}
+              className="w-full h-auto rounded-md object-cover"
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="mt-2 text-sm text-gray-600">
+          No photos uploaded yet.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function RSVPDropdown({ eventId, myAttendeeId }: { eventId: string, myAttendeeId: string }) {
+  const onRsvpSelected = async (rsvpSelected: RsvpState) => {
+    if (!eventId) {
+      console.log(`eventId is undefined`);
+      return;
+    }
+
+    if (!myAttendeeId) {
+      console.log(`myAttendeeId is undefined`);
+      return;
+    }
+
+    const body: UpdateRsvpBody = {
+      eventId: eventId,
+      rsvpState: rsvpSelected,
+      attendeeId: myAttendeeId,
+    };
+    await api.updateRsvp(body)
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+          RSVP <ChevronDown />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem onClick={() => onRsvpSelected(RsvpState.going)}>Going</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onRsvpSelected(RsvpState.notGoing)}>Not Going</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onRsvpSelected(RsvpState.maybe)}>Maybe</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+};
+
+type RsvpCardProps = {
+  eventId: string,
+  myAttendeeId: string,
+  categorizedAttendees: CategorizedAttendees
+}
+function RsvpCard({ eventId, myAttendeeId, categorizedAttendees }: RsvpCardProps) {
+  return (
+    <div className="md:col-span-1 p-6 bg-white border border-gray-200 rounded-lg shadow-sm ">
+
+      <div className="flex justify-between">
+        <h3 className="text-lg font-semibold">Guests</h3>
+        <div className="flex justify-right">
+          <InviteModal eventId={eventId} />
+          {eventId && myAttendeeId && (
+            <RSVPDropdown eventId={eventId} myAttendeeId={myAttendeeId} />
+          )}
+        </div>
+      </div>
+
+      <div className="mt-2 flex gap-2 items-center">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 384 512"
+          width={16}
+          height={16}
+        >
+          <path d="M320 64H280h-9.6C263 27.5 230.7 0 192 0s-71 27.5-78.4 64H104 64C28.7 64 0 92.7 0 128V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V128c0-35.3-28.7-64-64-64zM80 112v24c0 13.3 10.7 24 24 24h88 88c13.3 0 24-10.7 24-24V112h16c8.8 0 16 7.2 16 16V448c0 8.8-7.2 16-16 16H64c-8.8 0-16-7.2-16-16V128c0-8.8 7.2-16 16-16H80zm88-32a24 24 0 1 1 48 0 24 24 0 1 1 -48 0zm3.3 155.3c6.2-6.2 6.2-16.4 0-22.6s-16.4-6.2-22.6 0L112 249.4 99.3 236.7c-6.2-6.2-16.4-6.2-22.6 0s-6.2 16.4 0 22.6l24 24c6.2 6.2 16.4 6.2 22.6 0l48-48zM192 272c0 8.8 7.2 16 16 16h64c8.8 0 16-7.2 16-16s-7.2-16-16-16H208c-8.8 0-16 7.2-16 16zm-32 96c0 8.8 7.2 16 16 16h96c8.8 0 16-7.2 16-16s-7.2-16-16-16H176c-8.8 0-16 7.2-16 16zm-48 24a24 24 0 1 0 0-48 24 24 0 1 0 0 48z" />
+        </svg>
+        {categorizedAttendees.goingList.length} going,{" "}
+        {categorizedAttendees.notGoingList.length} not going,{" "}
+        {categorizedAttendees.maybeList.length} maybe,{" "}
+        {categorizedAttendees.unknownList.length} unknown
+      </div>
+      <div className="flex flex-wrap gap-1">
+        <AttendeeList attendees={categorizedAttendees.goingList} />
+        <AttendeeList attendees={categorizedAttendees.notGoingList} />
+        <AttendeeList attendees={categorizedAttendees.maybeList} />
+        <AttendeeList attendees={categorizedAttendees.unknownList} />
+      </div>
+    </div>
+  );
+}
+
+function SettingsDropdown({ isEditing, onEditEventClicked: onEditEventClicked }: { isEditing: boolean, onEditEventClicked: () => void }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <Settings className="size-6" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        {!isEditing && (
+          <DropdownMenuItem onClick={onEditEventClicked}>Edit Event</DropdownMenuItem>
+        )}
+        {isEditing && (
+          <DropdownMenuItem onClick={() => alert("TODO: Popup with 'are you sure?' dialog")}>Delete Event</DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+};
+
 export default function EventPage() {
   const [eventDetails, setEventDetails] = useState<EventDetails>();
   const [newEventDetails, setNewEventDetails] = useState<EventDetails>();
@@ -94,8 +212,7 @@ export default function EventPage() {
       .subscribe(eventDetails => {
         console.log(`eventDetails:`, eventDetails);
         setEventDetails(eventDetails)
-        document.title = `${
-          eventDetails?.name || "Event Details"
+        document.title = `${eventDetails?.name || "Event Details"
           } | InCahoots`;
       })
 
@@ -146,43 +263,6 @@ export default function EventPage() {
       .then(setMyAttendeeId);
   }, [eventId, user]);
 
-
-  const RSVPDropdown = () => {
-    const onRsvpSelected = async (rsvpSelected: RsvpState) => {
-      if (!eventId) {
-        console.log(`eventId is undefined`);
-        return;
-      }
-
-      if (!myAttendeeId) {
-        console.log(`myAttendeeId is undefined`);
-        return;
-      }
-
-      const body: UpdateRsvpBody = {
-        eventId: eventId,
-        rsvpState: rsvpSelected,
-        attendeeId: myAttendeeId,
-      };
-      await api.updateRsvp(body)
-    }
-
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
-            RSVP <ChevronDown />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem onClick={() => onRsvpSelected(RsvpState.going)}>Going</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onRsvpSelected(RsvpState.notGoing)}>Not Going</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onRsvpSelected(RsvpState.maybe)}>Maybe</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    )
-  };
-
   const toggleEditMode = () => {
     if (!isEditing) {
       const deepCopy = JSON.parse(JSON.stringify(eventDetails));
@@ -223,88 +303,6 @@ export default function EventPage() {
     setIsEditing(false);
   };
 
-  const SettingsDropdown = () => {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <Settings className="size-6" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          {!isEditing && (
-            <DropdownMenuItem onClick={toggleEditMode}>Edit Event</DropdownMenuItem>
-          )}
-          {isEditing && (
-            <DropdownMenuItem onClick={() => alert("TODO: Popup with 'are you sure?' dialog")}>Delete Event</DropdownMenuItem>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    )
-  };
-
-  function RsvpCard() {
-    return (
-      <div className="md:col-span-1 p-6 bg-white border border-gray-200 rounded-lg shadow-sm ">
-
-        <div className="flex justify-between">
-          <h3 className="text-lg font-semibold">Guests</h3>
-          <div className="flex justify-right">
-            <InviteModal eventId={eventId} />
-            <RSVPDropdown />
-          </div>
-        </div>
-
-        <div className="mt-2 flex gap-2 items-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 384 512"
-            width={16}
-            height={16}
-          >
-            <path d="M320 64H280h-9.6C263 27.5 230.7 0 192 0s-71 27.5-78.4 64H104 64C28.7 64 0 92.7 0 128V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V128c0-35.3-28.7-64-64-64zM80 112v24c0 13.3 10.7 24 24 24h88 88c13.3 0 24-10.7 24-24V112h16c8.8 0 16 7.2 16 16V448c0 8.8-7.2 16-16 16H64c-8.8 0-16-7.2-16-16V128c0-8.8 7.2-16 16-16H80zm88-32a24 24 0 1 1 48 0 24 24 0 1 1 -48 0zm3.3 155.3c6.2-6.2 6.2-16.4 0-22.6s-16.4-6.2-22.6 0L112 249.4 99.3 236.7c-6.2-6.2-16.4-6.2-22.6 0s-6.2 16.4 0 22.6l24 24c6.2 6.2 16.4 6.2 22.6 0l48-48zM192 272c0 8.8 7.2 16 16 16h64c8.8 0 16-7.2 16-16s-7.2-16-16-16H208c-8.8 0-16 7.2-16 16zm-32 96c0 8.8 7.2 16 16 16h96c8.8 0 16-7.2 16-16s-7.2-16-16-16H176c-8.8 0-16 7.2-16 16zm-48 24a24 24 0 1 0 0-48 24 24 0 1 0 0 48z" />
-          </svg>
-          {categorizedAttendees.goingList.length} going,{" "}
-          {categorizedAttendees.notGoingList.length} not going,{" "}
-          {categorizedAttendees.maybeList.length} maybe,{" "}
-          {categorizedAttendees.unknownList.length} unknown
-        </div>
-        <div className="flex flex-wrap gap-1">
-          <AttendeeList attendees={categorizedAttendees.goingList} />
-          <AttendeeList attendees={categorizedAttendees.notGoingList} />
-          <AttendeeList attendees={categorizedAttendees.maybeList} />
-          <AttendeeList attendees={categorizedAttendees.unknownList} />
-        </div>
-      </div>
-    );
-  }
-
-  function MediaCard() {
-    return (
-      <div className="md:col-span-1 p-6 bg-white border border-gray-200 rounded-lg shadow-sm ">
-        <h3 className="text-lg font-semibold">Photos</h3>
-        <UploadPhotosModal eventId={eventId!} />
-        <DownloadPhotosModal eventId={eventId!} />
-        {eventPhotos.length > 0 ? (
-          <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-2">
-            {eventPhotos.map((photoUrl, index) => (
-              <img
-                key={index}
-                src={photoUrl}
-                alt={`Event photo ${index + 1}`}
-                className="w-full h-auto rounded-md object-cover"
-              />
-            ))}
-          </div>
-        ) : (
-          <p className="mt-2 text-sm text-gray-600">
-            No photos uploaded yet.
-          </p>
-        )}
-      </div>
-    );
-  }
-
   return (
     <>
       <NavigationBar />
@@ -323,7 +321,7 @@ export default function EventPage() {
                     <Button variant="destructive" onClick={discardEditChanges}>Discard Changes</Button>
                   </>
                 )}
-                <SettingsDropdown />
+                <SettingsDropdown isEditing={isEditing} onEditEventClicked={toggleEditMode} />
               </div>
             </div>
             <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -332,8 +330,16 @@ export default function EventPage() {
                 eventHosts={categorizedAttendees.hosts}
                 isEditing={isEditing}
               />
-              <RsvpCard />
-              <MediaCard />
+              {eventId && myAttendeeId && (
+                <RsvpCard
+                  eventId={eventId}
+                  myAttendeeId={myAttendeeId}
+                  categorizedAttendees={categorizedAttendees}
+                />
+              )}
+              {eventId && (
+                <MediaCard eventId={eventId} eventPhotos={eventPhotos} />
+              )}
             </div>
           </section>
         ) : (

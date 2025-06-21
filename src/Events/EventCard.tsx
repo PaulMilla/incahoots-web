@@ -1,60 +1,27 @@
-import { RsvpState, UpdateRsvpBody, UserEvent } from "../types";
-import { Link, useNavigate } from "react-router-dom";
+import { Attendee, RsvpState, UpdateRsvpBody, UserEvent } from "../types";
+import { Link } from "react-router-dom";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Crown, Settings } from "lucide-react";
 import * as api from "../lib/inCahootsApi";
 
-export function EventCard({ event }: { event: UserEvent }) {
-    const navigate = useNavigate();
+function SettingsDropdown() {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <Settings className="size-6" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem onClick={() => alert("TODO: Popup with 'are you sure?' dialog")}>Delete Event</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
-    const SettingsDropdown = () => {
-        return (
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                        <Settings className="size-6" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => alert("TODO: Popup with 'are you sure?' dialog")}>Delete Event</DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        );
-    };
-
-  const RsvpDropdown = () => {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm">
-            {event.myAttendeeDetails.rsvpState}
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          {[
-            RsvpState.going,
-            RsvpState.notGoing,
-            RsvpState.maybe
-          ].map((state) => (
-            <DropdownMenuItem
-              key={state}
-              disabled={event.myAttendeeDetails.rsvpState === state}
-              onClick={async () => await updateEventRsvp(eventDetails.id, event.myAttendeeDetails.id, state)}
-            >
-              {state}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  };
-
-  const onViewEvent = (eventId: string) => {
-    navigate(`/events/${eventId}`);
-  };
-
+function RsvpDropdown({ attendeeDetails }: { attendeeDetails: Attendee }) {
   const updateEventRsvp = async (eventId: string, attendeeId: string, newState: string) => {
     const body: UpdateRsvpBody = {
       eventId: eventId,
@@ -64,6 +31,33 @@ export function EventCard({ event }: { event: UserEvent }) {
     await api.updateRsvp(body);
   };
 
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm">
+          {attendeeDetails.rsvpState}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        {[
+          RsvpState.going,
+          RsvpState.notGoing,
+          RsvpState.maybe
+        ].map((state) => (
+          <DropdownMenuItem
+            key={state}
+            disabled={attendeeDetails.rsvpState === state}
+            onClick={async () => await updateEventRsvp(attendeeDetails.eventId, attendeeDetails.id, state)}
+          >
+            {state}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+export function EventCard({ event }: { event: UserEvent }) {
   const eventDetails = event.eventDetails;
   const isHost = event.myAttendeeDetails.isHost;
 
@@ -96,18 +90,22 @@ export function EventCard({ event }: { event: UserEvent }) {
         </CardAction>
       </CardHeader>
       <CardContent>
+        {/* RSVP state */}
         <div className="mb-2 flex items-center gap-2">
           <span className="font-semibold">RSVP:</span>
-          <RsvpDropdown />
+          <RsvpDropdown attendeeDetails={event.myAttendeeDetails} />
         </div>
+        {/* Location info */}
         <div>
           <span className="font-semibold">Location:</span>{" "}
           {eventDetails.location.name ?? "No location specified"}
         </div>
       </CardContent>
       <CardFooter>
-        <Button variant="link" onClick={() => onViewEvent(event.eventDetails.id)}>
-          View Event
+        <Button variant="link" asChild>
+          <Link to={`/events/${event.eventDetails.id}`}>
+            View Event
+          </Link>
         </Button>
       </CardFooter>
     </Card>
