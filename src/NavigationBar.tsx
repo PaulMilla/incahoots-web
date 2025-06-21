@@ -76,9 +76,11 @@ export default function NavigationBar() {
       {/* Right side of nav bar */}
       <NavigationMenuList className="flex items-center justify-between w-full md:w-auto space-x-3 rtl:space-x-reverse">
         <NavigationMenuItem className="md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
-          <NavLink to="/newEvent">
-            + New Event
-          </NavLink>
+          {user && (
+            <NavLink to="/newEvent">
+              + New Event
+            </NavLink>
+          )}
         </NavigationMenuItem>
         <NavigationMenuItem className="md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
           {user ? (
