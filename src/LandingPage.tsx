@@ -1,8 +1,21 @@
 import { toast } from "react-toastify";
 import NavigationBar from "./NavigationBar.tsx";
+import { useEffect } from "react";
+import { LoginState, useAuth } from "./auth/FirebaseAuthContext.ts";
+import { useNavigate } from "react-router-dom";
 
 // Landing marketing page at root route with calls to action to create events and/or login
 function LandingPage() {
+  const navigate = useNavigate();
+  const { loginState } = useAuth();
+
+  useEffect(() => {
+    if (loginState == LoginState.signedIn) {
+      console.debug(`User logged in. Redirecting to /events dashboard...`);
+      navigate('/events');
+    }
+  });
+
   return (
     <div>
       <NavigationBar />
