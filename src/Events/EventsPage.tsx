@@ -20,10 +20,10 @@ export default function EventsPage() {
     }, [userId])
 
     return (
-        <div>
+        <>
             <NavigationBar />
             <div className="max-w-(--breakpoint-xl) mx-auto text-gray-700 px-5 mt-8">
-                <div className="py-8 px-4 mx-auto max-w-(--breakpoint-xl) text-left lg:py-16">
+                <div className="px-4 mx-auto max-w-(--breakpoint-xl) text-left">
                     <div className="flex flex-col gap-6">
                         <h1 className="text-5xl font-medium tracking-tight flex items-center gap-2">
                             Your Events
@@ -34,6 +34,6 @@ export default function EventsPage() {
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 }
