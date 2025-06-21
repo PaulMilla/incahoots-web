@@ -160,7 +160,14 @@ export function EditableEventTitle({ eventDetails, isEditing = false }: Editable
     }, [newEventName]);
 
     return isEditing ? (
-      <Input type="text" placeholder="Event Title" value={newEventName} size={3} onChange={e => setNewEventName(e.target.value)} />
+      <Input
+        type="text"
+        placeholder="Event Title"
+        value={newEventName}
+        onChange={e => setNewEventName(e.target.value)}
+        className="text-5xl font-medium tracking-tight px-0 py-0 border-none shadow-none focus:ring-0 focus:border-transparent bg-transparent"
+        style={{ lineHeight: "1.2" }}
+      />
     ) : (
       <h1 className="text-5xl font-medium tracking-tight">
         {eventDetails.name ?? "TODO: Invalid (empty) event name"}

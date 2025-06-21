@@ -52,13 +52,15 @@ export default function NewEventPage() {
     return (
         <>
             <NavigationBar />
-            <div className="py-8 px-4 mx-auto max-w-(--breakpoint-xl) text-left lg:py-16">
-                <EditableEventTitle
-                    eventDetails={newEventDetails}
-                    isEditing={true}
-                />
-                <EditableDetailsCard eventDetails={newEventDetails} eventHosts={[]} isEditing={true} />
-                <Button onClick={onCreateNewEvent}>Create event</Button>
+            <div className="p-6 py-8 px-4 mx-auto max-w-(--breakpoint-xl) text-left lg:py-16">
+                <div className="space-y-6">
+                    <EditableEventTitle
+                        eventDetails={newEventDetails}
+                        isEditing={true}
+                    />
+                    <EditableDetailsCard eventDetails={newEventDetails} eventHosts={[]} isEditing={true} />
+                    <Button onClick={onCreateNewEvent}>Create event</Button>
+                </div>
             </div>
         </>
     )
