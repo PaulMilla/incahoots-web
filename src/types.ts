@@ -5,6 +5,12 @@
 
 import { Timestamp } from "firebase/firestore";
 
+export enum RsvpState {
+  going = "going",
+  notGoing = "notGoing",
+  maybe = "maybe",
+  unknown = "unknown"
+};
 
 type GeoPoint = {
   latitude: number;

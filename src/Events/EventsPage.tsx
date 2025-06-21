@@ -3,17 +3,12 @@ import { useAuth } from "../auth/FirebaseAuthContext";
 import NavigationBar from "../NavigationBar";
 import { getUserEventsPublisher } from "../lib/firestore";
 import { UserEvent } from "../types";
-import { useNavigate } from "react-router-dom";
+import { EventCard } from "./EventCard";
 
 export default function EventsPage() {
     const { user } = useAuth()
     const userId = user?.uid
-    const navigate = useNavigate();
     const [userEvents, setUserEvents] = useState<UserEvent[]>();
-
-    async function onCreateNewEvent() {
-        navigate('/newEvent')
-    }
 
     useEffect(() => {
         if (userId == null) {
@@ -22,34 +17,23 @@ export default function EventsPage() {
 
         getUserEventsPublisher(userId ?? "")
             .subscribe(x => setUserEvents(x))
-    }, [userId, navigate])
+    }, [userId])
 
     return (
         <div>
             <NavigationBar />
-            <div className="py-8 px-4 mx-auto max-w-(--breakpoint-xl) text-left lg:py-16">
-                <button onClick={onCreateNewEvent}
-                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-hidden focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center "
-                    type="button"
-                >Create New Event</button>
-                <br /><br />
-                <h1>Your Events:</h1>
-                {
-                    userEvents?.map(event => {
-                        return (
-                            <div key={event.eventDetails.id}>
-                                <p>event.name: <a href={`events/${event.eventDetails.id}`}>{event.eventDetails.name}</a></p>
-                                <p>event.id: {event.eventDetails.id}</p>
-                                <p>event.isHost: {event.myAttendeeDetails.isHost ? "true" : "false"}</p>
-                                <p>event.startTime: {event.eventDetails.startDate.toDate().toString()}</p>
-                                <p>event.endTime: {event.eventDetails.endDate.toDate().toString()}</p>
-                                <p>event.attendee.rsvp: {event.myAttendeeDetails.rsvpState}</p>
-                                <br /><br />
-                            </div>
-                        )
-                    })
-                }
+            <div className="max-w-(--breakpoint-xl) mx-auto text-gray-700 px-5 mt-8">
+                <div className="py-8 px-4 mx-auto max-w-(--breakpoint-xl) text-left lg:py-16">
+                    <div className="flex flex-col gap-6">
+                        <h1 className="text-5xl font-medium tracking-tight flex items-center gap-2">
+                            Your Events
+                        </h1>
+                        {userEvents?.map(event =>
+                            <EventCard key={event.eventDetails.id} event={event} />
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
-    )
+    );
 }
