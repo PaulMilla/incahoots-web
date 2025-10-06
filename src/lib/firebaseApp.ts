@@ -22,13 +22,18 @@ const firebaseConfig = {
     measurementId: "G-ZTF5EEPK8R"
 };
 
+// Only connect to emulator if AUTH_URL is defined and using localhost
+const authUrlString = import.meta.env.VITE_AUTH_URL;
+const isDevelopment = authUrlString && isLocalhost(authUrlString);
+
 export const app = initializeApp(firebaseConfig);
-export const analytics = getAnalytics(app);
+// Only initialize analytics in production to avoid CORS errors in development
+export const analytics = isDevelopment ? null : getAnalytics(app)
 
 export const auth = getAuth(app)
-// Only connect to emulator if AUTH_URL is defined and using localhost
-const authUrlString = import.meta.env.VITE_AUTH_URL
-if (authUrlString && isLocalhost(authUrlString)) {
+
+
+if (isDevelopment) {
     connectAuthEmulator(auth, authUrlString);
 }
 export const authPublisher: Observable<Auth> = authState(auth)

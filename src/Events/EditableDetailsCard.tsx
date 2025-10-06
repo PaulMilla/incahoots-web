@@ -6,6 +6,8 @@ import { CalendarClock, Crown, MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
+import { LocationDetails } from "@/lib/locationService";
 
 type EventDetailsCardProps = {
   eventDetails: EventDetails | NewEventDetails;
@@ -77,13 +79,27 @@ export function EditableDetailsCard({ eventDetails, eventHosts, isEditing = fals
       }
     }, [newEventLocation]);
 
+    const handleLocationSelect = (location: LocationDetails) => {
+      // Update eventDetails with full location info including geoPoint
+      if (eventDetails) {
+        eventDetails.location = {
+          name: location.name,
+          address: location.address,
+          geoPoint: location.geoPoint,
+        };
+        setNewEventLocation(location.name);
+      }
+    };
+
     return (
       <>
         {isEditing ? (
-          <div className="flex gap-2 items-center">
-            <MapPin />
-            <Input type="text" placeholder="Event Location" value={newEventLocation} size={3} onChange={e => setNewEventLocation(e.target.value)} />
-          </div>
+          <LocationAutocomplete
+            value={newEventLocation}
+            onChange={setNewEventLocation}
+            onLocationSelect={handleLocationSelect}
+            placeholder="Event Location"
+          />
         ) : locationlabel && (
           <div className="flex gap-2 items-center">
             <MapPin />
