@@ -6,6 +6,8 @@ If no feature plan is given then provide the user with the latest 3 feature plan
 
 Implementing a feature plan should always be done on a new branch that is not the 'master' or 'main' branch.
 Create and switch to a new branch named 'feature/<description>' where <description> comes from the plan name.
+If a branch of a similar name already exists prompt the user for whether they want to continue from that branch,
+or create a new branch under a different name.
 
 Immediately after implementing the plan create a new commit with a message that begins using the robot emoji (🤖)
 to denote this code was created using AI, and include all the files that were changed during the implementation
