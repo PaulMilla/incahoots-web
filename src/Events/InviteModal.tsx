@@ -23,12 +23,15 @@ export function InviteModal({ eventId }: { eventId?: string }) {
       return;
     }
 
-    getEventAttendeesPublisher(eventId)
+    const eventAttendeesSubscription = getEventAttendeesPublisher(eventId)
       .pipe(filterNullish())
       .subscribe((attendees: Attendee[]) => {
         setAttendees(attendees);
       });
 
+    return () => {
+      eventAttendeesSubscription.unsubscribe();
+    };
   }, [eventId]);
 
 
