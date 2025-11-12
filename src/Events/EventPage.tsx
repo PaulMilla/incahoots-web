@@ -208,7 +208,7 @@ export default function EventPage() {
       return;
     }
 
-    getEventDetailsPublisher(eventId)
+    const eventDetailsSubscription = getEventDetailsPublisher(eventId)
       .subscribe(eventDetails => {
         console.log(`eventDetails:`, eventDetails);
         setEventDetails(eventDetails)
@@ -220,7 +220,7 @@ export default function EventPage() {
      * cause in theory we can grab the attendee details info
      * inline in one network request, not have to do two
      */
-    getEventAttendeesPublisher(eventId)
+    const attendeesSubscription = getEventAttendeesPublisher(eventId)
       .pipe(
         filterNullish(),
         map(eventAttendees => {
@@ -261,7 +261,13 @@ export default function EventPage() {
 
     getMyAttendeeId(user?.uid, eventId)
       .then(setMyAttendeeId);
-  }, [eventId, user]);
+
+    // Cleanup subscriptions on unmount or when dependencies change
+    return () => {
+      eventDetailsSubscription.unsubscribe();
+      attendeesSubscription.unsubscribe();
+    };
+  }, [eventId, user?.uid]);
 
   const toggleEditMode = () => {
     if (!isEditing) {
