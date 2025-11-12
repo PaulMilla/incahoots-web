@@ -7,6 +7,7 @@ import { Observable } from 'rxjs';
 import { authState } from "rxfire/auth";
 import { getAnalytics } from "firebase/analytics";
 import { isLocalhost } from "../utils/isLocalHost";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 // These are unique, but non-secret IDs for firebase projects
 // https://firebase.google.com/docs/web/learn-more#config-object
@@ -27,12 +28,15 @@ const authUrlString = import.meta.env.VITE_AUTH_URL;
 const isDevelopment = authUrlString && isLocalhost(authUrlString);
 
 export const app = initializeApp(firebaseConfig);
+
 // Only initialize analytics in production to avoid CORS errors in development
 export const analytics = isDevelopment ? null : getAnalytics(app)
+export const appCheck = isDevelopment ? null : initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider('6Lc6twksAAAAAE_dQTxcY_1zYfz8GOA3zk6t-LzD'),
+  isTokenAutoRefreshEnabled: true
+});
 
 export const auth = getAuth(app)
-
-
 if (isDevelopment) {
     connectAuthEmulator(auth, authUrlString);
 }
