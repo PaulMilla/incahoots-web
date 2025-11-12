@@ -28,8 +28,8 @@ export function LocationAutocomplete({
   const [error, setError] = useState<string | null>(null);
   const justSelected = useRef(false);
 
-  // Debounce the input value by 1 seconds
-  const [debouncedValue] = useDebounce(value, 1000);
+  // Debounce the input value to limit API calls and wait for user to stop typing
+  const [debouncedValue] = useDebounce(value, 300);
 
   // Fetch predictions when debounced value changes and has 3+ characters
   useEffect(() => {
@@ -77,7 +77,9 @@ export function LocationAutocomplete({
     // Fetch full location details if callback is provided
     if (onLocationSelect) {
       try {
+        console.debug(`Fetching details for location '${prediction.id}':`, prediction);
         const details = await locationService.getLocationDetails(prediction.id);
+        console.info("Fetched location details:", details);
         onLocationSelect(details);
       } catch (err) {
         console.error("Error fetching location details:", err);
