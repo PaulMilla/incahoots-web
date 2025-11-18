@@ -174,7 +174,7 @@ function CommandBox({
         <Separator orientation="vertical" />
         <div id="DialogBody-Right" className="flex-1">
           <h1 className="text-lg mb-2">Guest List</h1>
-          <ScrollArea className="h-[500px] rounded-md border p-2">
+          <ScrollArea className="min-h-[200px] max-h-[500px] rounded-md border p-2">
             {people.map(x =>
               <GuestListItem key={x.id} person={x} actionType={ActionType.remove} onActionClicked={() => removeInvite(x)} />
             )}
