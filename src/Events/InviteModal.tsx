@@ -8,7 +8,7 @@ import { getEventAttendeesPublisher } from "@/lib/firestore";
 import { inviteContacts } from "@/lib/inCahootsApi";
 import { filterNullish } from "@/lib/rxjs";
 import { Attendee, AttendeeInvite, EventInvitesBody } from "@/types";
-import { ChevronRight, CircleHelp, FileQuestion, Loader2Icon, Mail, SquareCheck, SquareX, X } from "lucide-react";
+import { CircleHelp, FileQuestion, Loader2Icon, Mail, SquareCheck, SquareX, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function InviteModal({ eventId }: { eventId?: string }) {
@@ -167,7 +167,11 @@ function CommandBox({
               </CommandGroup>
             )}
             {page === "quickAdd" && searchValue && (
-              <QuickAddForm searchValue={searchValue} onSubmit={onSubmitPerson} />
+              <QuickAddForm
+                searchValue={searchValue}
+                onSubmit={onSubmitPerson}
+                onCancel={() => setPages((pages) => pages.slice(0, -1))}
+              />
             )}
           </CommandList>
         </div>
@@ -188,7 +192,15 @@ function CommandBox({
   )
 }
 
-function QuickAddForm({ searchValue, onSubmit }: { searchValue: string, onSubmit: (person: Person) => void }) {
+function QuickAddForm({
+  searchValue,
+  onSubmit,
+  onCancel
+}: {
+  searchValue: string;
+  onSubmit: (person: Person) => void;
+  onCancel: () => void;
+}) {
   const searchType =
     searchValue.includes('@') ? 'email'
       : /^[0-9-]+$/.test(searchValue) ? 'phone'
@@ -200,15 +212,20 @@ function QuickAddForm({ searchValue, onSubmit }: { searchValue: string, onSubmit
   const [phone, setPhone] = useState<string>(searchType == 'phone' ? searchValue : '')
 
   return (
-    <div className="p-2">
+    <div className="p-2 space-y-2">
       <h1 className="text-md">Quick Add...</h1>
-      <h3 className="text-sm">Either email or phone must be defined</h3>
-      <Input placeholder="Name (optional)" value={name} autoFocus={searchType != 'name'} type="text" onChange={e => setName(e.currentTarget.value)}></Input>
-      <Input placeholder="Email (optional)" value={email} autoFocus={searchType == 'name'} type="email" onChange={e => setEmail(e.currentTarget.value)}></Input>
-      <Input placeholder="Phone (optional)" value={phone} type="phone" onChange={e => setPhone(e.currentTarget.value)}></Input>
-      <Button asChild variant={"outline"}>
-        <ChevronRight onClick={() => { onSubmit({ id: uuidv4(), name, email, phone } as Person) }} />
-      </Button>
+      <h3 className="text-sm text-muted-foreground">Either email or phone must be defined</h3>
+      <Input placeholder="Name (optional)" value={name} autoFocus={searchType != 'name'} type="text" onChange={e => setName(e.currentTarget.value)} />
+      <Input placeholder="Email (optional)" value={email} autoFocus={searchType == 'name'} type="email" onChange={e => setEmail(e.currentTarget.value)} />
+      <Input placeholder="Phone (optional)" value={phone} type="phone" onChange={e => setPhone(e.currentTarget.value)} />
+      <div className="flex gap-2 justify-end pt-2">
+        <Button variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button onClick={() => onSubmit({ id: uuidv4(), name, email, phone } as Person)}>
+          Add
+        </Button>
+      </div>
     </div>
   )
 }
