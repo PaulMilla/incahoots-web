@@ -15,8 +15,12 @@ export default function EventsPage() {
             return
         }
 
-        getUserEventsPublisher(userId ?? "")
+        const userEventsSubscription = getUserEventsPublisher(userId ?? "")
             .subscribe(x => setUserEvents(x))
+
+        return () => {
+            userEventsSubscription.unsubscribe();
+        };
     }, [userId])
 
     return (

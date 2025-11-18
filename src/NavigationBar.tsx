@@ -39,21 +39,11 @@ export default function NavigationBar() {
   const { user, loginState } = useAuth();
 
   useEffect(() => {
-    switch (loginState) {
-      case LoginState.uninitialized:
-        return;
-      case LoginState.loggedOut:
-        console.log(`User logged out`);
-        return;
-      case LoginState.authenticatedWithIncompleteProfile:
-        console.log(`User profile not complete. Redirecting..`);
-        navigate(`/signIn?redirectUrl=${window.location.pathname}`)
-        return;
-      case LoginState.signedIn:
-        console.log(`User successfully signedIn`)
-        return;
+    if (loginState === LoginState.authenticatedWithIncompleteProfile) {
+      console.debug('Redirecting to complete profile');
+      navigate(`/signIn?redirectUrl=${window.location.pathname}`)
     }
-  });
+  }, [loginState, navigate]);
 
   const logOut = async () => {
     await signOut(auth);

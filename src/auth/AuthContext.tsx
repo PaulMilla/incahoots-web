@@ -10,26 +10,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       // sets user when sign-in or null when sign-out
-      function isProfileComplete(authUser: AuthUser) {
-        const hasName = !!(authUser.displayName)
-        const hasPhone = !!(authUser.phoneNumber)
-        const hasEmail = !!(authUser.email)
-        return hasName && hasPhone && hasEmail
-      }
-
-      setUser(user)
+      setUser(user);
 
       if (!user) {
-        setLoginState(LoginState.loggedOut)
-        return
+        console.debug('User logged out');
+        setLoginState(LoginState.loggedOut);
+        return;
       }
 
-      if (!isProfileComplete(user)) {
-        setLoginState(LoginState.authenticatedWithIncompleteProfile)
-        return
+      const missingFields = ["displayName", "phoneNumber", "email"].filter(
+        (field) => !user[field as keyof AuthUser]
+      );
+
+      if (missingFields.length > 0) {
+        console.debug(`User profile incomplete, missing fields: ${missingFields.join(', ')}`);
+        setLoginState(LoginState.authenticatedWithIncompleteProfile);
+        return;
       }
 
-      setLoginState(LoginState.signedIn)
+      console.debug('User successfully signedIn');
+      setLoginState(LoginState.signedIn);
     });
 
     // clean up subscription on unmount

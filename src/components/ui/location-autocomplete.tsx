@@ -26,6 +26,7 @@ export function LocationAutocomplete({
   const [predictions, setPredictions] = useState<LocationPrediction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedValue, setSelectedValue] = useState<string>("");
   const justSelected = useRef(false);
 
   // Debounce the input value to limit API calls and wait for user to stop typing
@@ -66,6 +67,11 @@ export function LocationAutocomplete({
     fetchPredictions();
   }, [debouncedValue]);
 
+  // Reset selected value when predictions change
+  useEffect(() => {
+    setSelectedValue("");
+  }, [predictions]);
+
   const handleSelect = async (prediction: LocationPrediction) => {
     // Mark that we just made a selection to prevent re-fetching
     justSelected.current = true;
@@ -93,6 +99,44 @@ export function LocationAutocomplete({
     // The debounce will handle opening it
   };
 
+  // TODO: Look into cmdk's built-in keyboard navigation support rather than manually handling key events
+  // Used ClaudeAI to get this working
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!open || predictions.length === 0) {
+      return;
+    }
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      // Find current index and move to next
+      const currentIndex = predictions.findIndex((p) => p.description === selectedValue);
+      const nextIndex = currentIndex < predictions.length - 1 ? currentIndex + 1 : currentIndex;
+      setSelectedValue(predictions[nextIndex].description);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      // Find current index and move to previous
+      const currentIndex = predictions.findIndex((p) => p.description === selectedValue);
+      if (currentIndex > 0) {
+        setSelectedValue(predictions[currentIndex - 1].description);
+      } else {
+        setSelectedValue(""); // Clear selection if at the top
+      }
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      // Find the prediction that matches the selected value from cmdk
+      const prediction = predictions.find((p) => p.description === selectedValue);
+      if (prediction) {
+        handleSelect(prediction);
+      } else if (predictions.length > 0) {
+        // If no value is selected by cmdk, select the first item
+        handleSelect(predictions[0]);
+      }
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setOpen(false);
+    }
+  };
+
   return (
     <div className="flex gap-2 items-center w-full">
       <MapPin />
@@ -103,6 +147,7 @@ export function LocationAutocomplete({
             placeholder={placeholder}
             value={value}
             onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
             className={className}
           />
         </PopoverAnchor>
@@ -111,7 +156,11 @@ export function LocationAutocomplete({
           align="start"
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
-          <Command className="bg-white">
+          <Command
+            className="bg-white"
+            value={selectedValue}
+            onValueChange={setSelectedValue}
+          >
             <CommandList className="max-h-[300px]">
               {isLoading && (
                 <div className="py-6 text-center text-sm text-gray-700">Loading...</div>
@@ -131,7 +180,7 @@ export function LocationAutocomplete({
                       key={prediction.id}
                       value={prediction.description}
                       onSelect={() => handleSelect(prediction)}
-                      className="cursor-pointer px-4 py-2 hover:bg-gray-100"
+                      className="cursor-pointer px-4 py-2"
                       style={{ color: '#111827' }}
                     >
                       <MapPin className="mr-2 h-4 w-4 shrink-0" style={{ color: '#6B7280' }} />
