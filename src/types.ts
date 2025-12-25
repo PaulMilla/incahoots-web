@@ -26,7 +26,6 @@ type Location = {
 
 export type UserEventInfo = {
   eventId: string;
-  myAttendeeId: string;
 };
 
 export type NewEventDetails = {
@@ -63,15 +62,15 @@ export type UserEvent = {
 }
 
 export type CreateEventBody = {
+  name: string,
+  bodyText: string,
+  startDate: string,
+  endDate: string,
+  location: {
     name: string,
-    bodyText: string,
-    startDate: string,
-    endDate: string,
-    location: {
-        name: string,
-        address?: string,
-        geoPoint?: GeoPoint,
-    },
+    address?: string,
+    geoPoint?: GeoPoint,
+  },
 }
 
 export type UpdateEventBody = CreateEventBody & { id: string }
@@ -79,7 +78,6 @@ export type UpdateEventBody = CreateEventBody & { id: string }
 export type UpdateRsvpBody = {
   rsvpState: string,
   eventId: string,
-  attendeeId: string
 }
 
 export type EventInvitesBody = {
@@ -88,8 +86,8 @@ export type EventInvitesBody = {
 }
 
 export type AttendeeInvite = {
-    isHost: boolean;
-    fullName: string;
-    phoneNumber: string;
-    email: string;
+  isHost: boolean;
+  fullName: string;
+  phoneNumber: string;
+  email: string;
 }
