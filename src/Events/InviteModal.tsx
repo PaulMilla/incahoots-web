@@ -8,7 +8,7 @@ import { getEventAttendeesPublisher } from "@/lib/firestore";
 import { inviteContacts } from "@/lib/inCahootsApi";
 import { filterNullish } from "@/lib/rxjs";
 import { Attendee, AttendeeInvite, EventInvitesBody } from "@/types";
-import { ChevronRight, CircleHelp, FileQuestion, Loader2Icon, Mail, SquareCheck, SquareX, X } from "lucide-react";
+import { CircleHelp, FileQuestion, Loader2Icon, Mail, SquareCheck, SquareX, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function InviteModal({ eventId }: { eventId?: string }) {
@@ -93,26 +93,7 @@ export function InviteModal({ eventId }: { eventId?: string }) {
           </DialogDescription>
         </DialogHeader>
 
-        <div id="DialogBody" className="flex items-center space-x-4">
-          <div id="DialogBody-Left" className="grid gap-4">
-            <CommandBox onAddInvite={onAddInvite} />
-          </div>
-          <Separator orientation="vertical" />
-          <div id="DialogBody-Right" className="md:min-w-[200px] flex-grow">
-            <h1 className="text-lg">Guest List</h1>
-            <ScrollArea className="h-72 rounded-md border p-2">
-              {people.map(x =>
-                <GuestListItem key={x.id} person={x} actionType={ActionType.remove} onActionClicked={() => removeInvite(x)} />
-              )}
-            </ScrollArea>
-            <h1 className="pt-10">Already Invited</h1>
-            <ScrollArea className="max-h-72 rounded-md border p-2">
-              {attendees.map(x =>
-                <GuestListAttendee key={x.id} attendee={x} />
-              )}
-            </ScrollArea>
-          </div>
-        </div>
+        <CommandBox onAddInvite={onAddInvite} people={people} attendees={attendees} removeInvite={removeInvite} />
 
         <DialogFooter>
           <DialogDescription>
@@ -140,7 +121,17 @@ export function InviteModal({ eventId }: { eventId?: string }) {
   )
 }
 
-function CommandBox({ onAddInvite }: { onAddInvite: (person: Person) => void }) {
+function CommandBox({
+  onAddInvite,
+  people,
+  attendees,
+  removeInvite
+}: {
+  onAddInvite: (person: Person) => void;
+  people: Person[];
+  attendees: Attendee[];
+  removeInvite: (person: Person) => void;
+}) {
   const [searchValue, setSearchValue] = useState<string>()
   const [pages, setPages] = useState<string[]>([])
   const page = pages[pages.length - 1]
@@ -160,25 +151,56 @@ function CommandBox({ onAddInvite }: { onAddInvite: (person: Person) => void }) 
         setPages((pages) => pages.slice(0, -1))
       }
     }}>
-      <CommandInput placeholder="Type a person's name, email, or phone number..." value={searchValue} onValueChange={setSearchValue} />
-      <CommandList>
-        {!page && !searchValue && (
-          <CommandEmpty>No recent contacts. Try adding some manually using the quick add option...</CommandEmpty>
-        )}
-        {!page && searchValue && (
-          <CommandGroup forceMount heading="Quick add..">
-            <CommandItem forceMount onSelect={() => setPages([...pages, 'quickAdd'])} >Quick add contact for {searchValue}..</CommandItem>
-          </CommandGroup>
-        )}
-        {page === "quickAdd" && searchValue && (
-          <QuickAddForm searchValue={searchValue} onSubmit={onSubmitPerson} />
-        )}
-      </CommandList>
+      <div className="w-full mb-4">
+        <CommandInput placeholder="Type a person's name, email, or phone number..." value={searchValue} onValueChange={setSearchValue} />
+      </div>
+
+      <div id="DialogBody" className="flex items-start space-x-4">
+        <div id="DialogBody-Left" className="flex-1">
+          <CommandList>
+            {!page && !searchValue && (
+              <CommandEmpty>No recent contacts. Try adding some manually using the quick add option...</CommandEmpty>
+            )}
+            {!page && searchValue && (
+              <CommandGroup forceMount heading="Quick add..">
+                <CommandItem forceMount onSelect={() => setPages([...pages, 'quickAdd'])} >Quick add contact for {searchValue}..</CommandItem>
+              </CommandGroup>
+            )}
+            {page === "quickAdd" && searchValue && (
+              <QuickAddForm
+                searchValue={searchValue}
+                onSubmit={onSubmitPerson}
+                onCancel={() => setPages((pages) => pages.slice(0, -1))}
+              />
+            )}
+          </CommandList>
+        </div>
+        <Separator orientation="vertical" />
+        <div id="DialogBody-Right" className="flex-1">
+          <h1 className="text-lg mb-2">Guest List</h1>
+          <ScrollArea className="min-h-[200px] max-h-[500px] rounded-md border p-2">
+            {people.map(x =>
+              <GuestListItem key={x.id} person={x} actionType={ActionType.remove} onActionClicked={() => removeInvite(x)} />
+            )}
+            {attendees.map(x =>
+              <GuestListAttendee key={x.id} attendee={x} />
+            )}
+          </ScrollArea>
+        </div>
+      </div>
     </Command>
   )
 }
 
-function QuickAddForm({ searchValue, onSubmit }: { searchValue: string, onSubmit: (person: Person) => void }) {
+function QuickAddForm({
+  searchValue,
+  onSubmit,
+  onCancel
+}: {
+  searchValue: string;
+  onSubmit: (person: Person) => void;
+  onCancel: () => void;
+}) {
   const searchType =
     searchValue.includes('@') ? 'email'
       : /^[0-9-]+$/.test(searchValue) ? 'phone'
@@ -190,15 +212,20 @@ function QuickAddForm({ searchValue, onSubmit }: { searchValue: string, onSubmit
   const [phone, setPhone] = useState<string>(searchType == 'phone' ? searchValue : '')
 
   return (
-    <div className="p-2">
+    <div className="p-2 space-y-2">
       <h1 className="text-md">Quick Add...</h1>
-      <h3 className="text-sm">Either email or phone must be defined</h3>
-      <Input placeholder="Name (optional)" value={name} autoFocus={searchType != 'name'} type="text" onChange={e => setName(e.currentTarget.value)}></Input>
-      <Input placeholder="Email (optional)" value={email} autoFocus={searchType == 'name'} type="email" onChange={e => setEmail(e.currentTarget.value)}></Input>
-      <Input placeholder="Phone (optional)" value={phone} type="phone" onChange={e => setPhone(e.currentTarget.value)}></Input>
-      <Button asChild variant={"outline"}>
-        <ChevronRight onClick={() => { onSubmit({ id: uuidv4(), name, email, phone } as Person) }} />
-      </Button>
+      <h3 className="text-sm text-muted-foreground">Either email or phone must be defined</h3>
+      <Input placeholder="Name (optional)" value={name} autoFocus={searchType != 'name'} type="text" onChange={e => setName(e.currentTarget.value)} />
+      <Input placeholder="Email (optional)" value={email} autoFocus={searchType == 'name'} type="email" onChange={e => setEmail(e.currentTarget.value)} />
+      <Input placeholder="Phone (optional)" value={phone} type="phone" onChange={e => setPhone(e.currentTarget.value)} />
+      <div className="flex gap-2 justify-end pt-2">
+        <Button variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button onClick={() => onSubmit({ id: uuidv4(), name, email, phone } as Person)}>
+          Add
+        </Button>
+      </div>
     </div>
   )
 }

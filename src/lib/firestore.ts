@@ -7,12 +7,10 @@ import {
   documentId,
   where,
   query,
-  collectionGroup,
-  getDoc,
   connectFirestoreEmulator,
 } from "firebase/firestore";
 import { map, switchMap } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { Observable, combineLatest, of } from 'rxjs';
 
 // @ts-expect-error - Unfortunately types seem to be messed up
 // There are types at '/node_modules/rxfire/firestore/index.d.ts'
@@ -30,21 +28,9 @@ if (fireStoreUrlString && isLocalhost(fireStoreUrlString)) {
   connectFirestoreEmulator(db, localFireStoreUrl.hostname, parseInt(localFireStoreUrl.port))
 }
 
-export async function getMyAttendeeId(userId: string | undefined, eventId: string) {
-  if (!userId) {
-    return undefined
-  }
-
-  const ref = doc(db, "users", userId, "events", eventId);
-  const docSnap = await getDoc(ref);
-
-  if (docSnap.exists()) {
-    const userEventInfo = docSnap.data() as UserEventInfo;
-    return userEventInfo.myAttendeeId;
-  } else {
-    console.error("No such document!");
-    return undefined
-  }
+export function getEventAttendeePublisher(eventId: string, userId: string): Observable<Attendee> {
+  const attendeeDocRef = doc(db, `events/${eventId}/eventAttendees/${userId}`);
+  return docData(attendeeDocRef, { idField: 'id' }) as Observable<Attendee>;
 }
 
 export function getEventDetailsPublisher(eventId: string) {
@@ -86,80 +72,47 @@ export function getEventAttendeesPublisher(eventId: string) {
   return eventAttendees$
 }
 
-export function getUserAttendeesPublisher(attendeeIds: string[]) {
-  // Return an empty observable if no IDs are provided else query() will throw an error
-  if (attendeeIds.length == 0) {
-    return new Observable<Attendee[]>(subscriber => {
-      subscriber.next([]);
-      subscriber.complete();
-    });
-  }
-
-  const refQuery = query(
-    collectionGroup(db, "eventAttendees"),
-    where('id', 'in', attendeeIds)
-  )
-  const userAttendees$: Observable<Attendee[]> = collectionData(refQuery, { idField: 'id'})
-  return userAttendees$
-}
-
 export function getUserEventsPublisher(userId: string) {
   const ref = collection(db, "users", userId, "events");
   const myEventInfos$: Observable<UserEventInfo[]> = collectionData(ref);
 
-  // Intermediary type
-  type UserEventDetails = {
-    eventDetails: EventDetails;
-    myAttendeeId: string;
-  };
-
   const userEvents$ = myEventInfos$.pipe(
     switchMap(myEventInfos => {
+      if (myEventInfos.length === 0) {
+        return of([]);
+      }
       const myEventIds = myEventInfos.map(x => x.eventId);
-      const myUserEventsDetails$ = getEventsDetailsPublisher(myEventIds)
-        .pipe(
-          map(myEventDetails => {
-            const myUserEventDetails = myEventDetails.map(myEventDetail => {
-              const myEventInfosFiltered = myEventInfos.filter(x => x.eventId == myEventDetail.id)
-              if (myEventInfosFiltered.length == 0) {
-                console.error(`Couldn't find myEventInfo for EventDetail.id: ${myEventDetail.id}`);
-              }
-              const myAttendeeId = myEventInfosFiltered[0].myAttendeeId;
-              return {
-                eventDetails: myEventDetail,
-                myAttendeeId: myAttendeeId
-              } as UserEventDetails
-            })
-            return myUserEventDetails;
-          })
-        )
-      return myUserEventsDetails$;
+      return combineLatest([
+        of(myEventInfos),
+        getEventsDetailsPublisher(myEventIds)
+      ]);
     }),
-
-    // TODO: Might have to do a combine latest instead of switchMap()
-    // TODO: Test if we auto-update the page when we select a new RSVP status
-    switchMap(myUserEventsDetails => {
-      const myAttendeeIds = myUserEventsDetails.map(x => x.myAttendeeId);
-      const myUserEvents$ = getUserAttendeesPublisher(myAttendeeIds)
-        .pipe(
-          map(myAttendees => {
-            const myUserEvents = myAttendees.map(myAttendee => {
-              const myEventDetailsFiltered = myUserEventsDetails.filter(x => x.eventDetails.id == myAttendee.eventId)
-              if (myEventDetailsFiltered.length == 0) {
-                console.error(`Couldn't find eventDetail for myAttendeeId: ${myAttendee.id}`)
-              }
-              const eventDetails = myEventDetailsFiltered[0].eventDetails;
-              return {
-                eventDetails: eventDetails,
-                myAttendeeDetails: myAttendee
-              } as UserEvent
-            })
-            return myUserEvents
+    switchMap(result => {
+      if (Array.isArray(result) && result.length === 2) {
+        const [myEventInfos, allEventDetails] = result as [UserEventInfo[], EventDetails[]];
+        const userAttendees$ = myEventInfos.map(eventInfo =>
+          getEventAttendeePublisher(eventInfo.eventId, userId)
+        );
+        return combineLatest(userAttendees$).pipe(
+          map(userAttendees => {
+            return userAttendees
+              .filter(attendee => !!attendee)
+              .map(attendee => {
+                const eventDetails = allEventDetails.find(e => e.id === attendee.eventId);
+                if (!eventDetails) {
+                  console.error(`Couldn't find eventDetail for eventId: ${attendee.eventId}`);
+                }
+                return {
+                  eventDetails: eventDetails!,
+                  myAttendeeDetails: attendee
+                } as UserEvent;
+              });
           })
-        )
-      return myUserEvents$;
-    }),
-  )
+        );
+      }
+      return of([]);
+    })
+  );
 
   return userEvents$;
 }

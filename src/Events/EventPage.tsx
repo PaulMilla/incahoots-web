@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getEventAttendeesPublisher, getEventDetailsPublisher, getMyAttendeeId } from "../lib/firestore";
+import { getEventAttendeesPublisher, getEventDetailsPublisher } from "../lib/firestore";
 import { filterNullish } from "../lib/rxjs";
 import { Attendee, EventDetails, RsvpState, UpdateEventBody, UpdateRsvpBody } from "../types";
 import { convertFirestoreTimestampToIsoString } from "../utils/timestamps";
@@ -83,22 +83,16 @@ function MediaCard({ eventId, eventPhotos }: { eventId: string, eventPhotos: str
   );
 }
 
-function RSVPDropdown({ eventId, myAttendeeId }: { eventId: string, myAttendeeId: string }) {
+function RSVPDropdown({ eventId }: { eventId: string }) {
   const onRsvpSelected = async (rsvpSelected: RsvpState) => {
     if (!eventId) {
       console.log(`eventId is undefined`);
       return;
     }
 
-    if (!myAttendeeId) {
-      console.log(`myAttendeeId is undefined`);
-      return;
-    }
-
     const body: UpdateRsvpBody = {
       eventId: eventId,
       rsvpState: rsvpSelected,
-      attendeeId: myAttendeeId,
     };
     await api.updateRsvp(body)
   }
@@ -121,10 +115,9 @@ function RSVPDropdown({ eventId, myAttendeeId }: { eventId: string, myAttendeeId
 
 type RsvpCardProps = {
   eventId: string,
-  myAttendeeId: string,
   categorizedAttendees: CategorizedAttendees
 }
-function RsvpCard({ eventId, myAttendeeId, categorizedAttendees }: RsvpCardProps) {
+function RsvpCard({ eventId, categorizedAttendees }: RsvpCardProps) {
   return (
     <div className="md:col-span-1 p-6 bg-white border border-gray-200 rounded-lg shadow-sm ">
 
@@ -132,8 +125,8 @@ function RsvpCard({ eventId, myAttendeeId, categorizedAttendees }: RsvpCardProps
         <h3 className="text-lg font-semibold">Guests</h3>
         <div className="flex justify-right">
           <InviteModal eventId={eventId} />
-          {eventId && myAttendeeId && (
-            <RSVPDropdown eventId={eventId} myAttendeeId={myAttendeeId} />
+          {eventId && (
+            <RSVPDropdown eventId={eventId} />
           )}
         </div>
       </div>
@@ -185,7 +178,6 @@ function SettingsDropdown({ isEditing, onEditEventClicked: onEditEventClicked }:
 export default function EventPage() {
   const [eventDetails, setEventDetails] = useState<EventDetails>();
   const [newEventDetails, setNewEventDetails] = useState<EventDetails>();
-  const [myAttendeeId, setMyAttendeeId] = useState<string>();
   const [eventPhotos, setEventPhotos] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [categorizedAttendees, setCategorizedAttendees] =
@@ -258,9 +250,6 @@ export default function EventPage() {
 
     getEventPhotos(eventId)
       .then(setEventPhotos)
-
-    getMyAttendeeId(user?.uid, eventId)
-      .then(setMyAttendeeId);
 
     // Cleanup subscriptions on unmount or when dependencies change
     return () => {
@@ -336,10 +325,9 @@ export default function EventPage() {
                 eventHosts={categorizedAttendees.hosts}
                 isEditing={isEditing}
               />
-              {eventId && myAttendeeId && (
+              {eventId && (
                 <RsvpCard
                   eventId={eventId}
-                  myAttendeeId={myAttendeeId}
                   categorizedAttendees={categorizedAttendees}
                 />
               )}

@@ -22,11 +22,10 @@ function SettingsDropdown() {
 }
 
 function RsvpDropdown({ attendeeDetails }: { attendeeDetails: Attendee }) {
-  const updateEventRsvp = async (eventId: string, attendeeId: string, newState: string) => {
+  const updateEventRsvp = async (eventId: string, newState: string) => {
     const body: UpdateRsvpBody = {
       eventId: eventId,
       rsvpState: newState,
-      attendeeId: attendeeId,
     };
     await api.updateRsvp(body);
   };
@@ -47,7 +46,7 @@ function RsvpDropdown({ attendeeDetails }: { attendeeDetails: Attendee }) {
           <DropdownMenuItem
             key={state}
             disabled={attendeeDetails.rsvpState === state}
-            onClick={async () => await updateEventRsvp(attendeeDetails.eventId, attendeeDetails.id, state)}
+            onClick={async () => await updateEventRsvp(attendeeDetails.eventId, state)}
           >
             {state}
           </DropdownMenuItem>
