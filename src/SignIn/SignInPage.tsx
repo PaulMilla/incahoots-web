@@ -10,71 +10,11 @@ import { GoogleAuthProvider, isSignInWithEmailLink, signInWithPopup } from "fire
 import { EmailSignInFlow } from "./EmailSignInFlow";
 import { PhoneSignInFlow } from "./PhoneSignInFlow";
 import { CompleteRegistration } from "./CompleteRegistration";
-import firebase from "firebase/compat/app";
-import * as firebaseui from "firebaseui";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import NavigationBar from "@/NavigationBar";
-
-/* TODO: Implement these providers ourselves and remove this dependency
- * Phone Auth doesn't work
- * Not updated to latest Firebase version that allows for tree shaking
- * Generally feels unmaintained
-*/
-function FirebaseWebUI() {
-  // initialize FirebaseUI singleton
-  const ui =
-    firebaseui.auth.AuthUI.getInstance() || new firebaseui.auth.AuthUI(auth);
-
-  // FirebaseUI config.
-  // Example: https://github.com/firebase/firebaseui-web/blob/master/demo/public/app.js#L22
-  // Live Demo: https://fir-ui-demo-84a6c.firebaseapp.com/
-  const uiConfig = {
-    signInSuccessUrl: "/events",
-    // Will use popup for IDP Providers sign-in flow instead of the default, redirect.
-    signInFlow: "popup",
-    signInOptions: [
-      // Leave the lines as is for the providers you want to offer your users.
-      // firebase.auth.PhoneAuthProvider.PROVIDER_ID,
-      firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-      {
-        provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
-        requireDisplayName: true,
-        signInMethod: "emailLink",
-      },
-      // firebase.auth.FacebookAuthProvider.PROVIDER_ID,
-      // firebase.auth.TwitterAuthProvider.PROVIDER_ID,
-      // firebase.auth.GithubAuthProvider.PROVIDER_ID,
-      {
-        provider: firebase.auth.PhoneAuthProvider.PROVIDER_ID,
-        // Invisible reCAPTCHA with image challenge and bottom left badge.
-        recaptchaParameters: {
-          type: "image",
-          size: "invisible",
-          badge: "bottomleft",
-        },
-      },
-    ],
-    // Terms of service url/callback.
-    tosUrl: "<your-tos-url>",
-    // Privacy policy url/callback.
-    privacyPolicyUrl: function () {
-      window.location.assign("<your-privacy-policy-url>");
-    },
-  };
-
-  useEffect(() => {
-    ui.start("#firebaseui-auth-container", uiConfig);
-  });
-
-  return (
-    <div>
-      <div id="firebaseui-auth-container" />
-    </div>
-  )
-}
 
 enum SignInOptions {
   phone,
@@ -99,8 +39,8 @@ export default function SignInPage() {
   // or signOut so that the user can signIn again?
   useEffect(() => {
     if (user == null) {
-        console.debug(`❗ User is null: ${user}`)
-        return;
+      console.debug(`❗ User is null: ${user}`)
+      return;
     }
     const isUserProfileComplete = isProfileComplete(user);
     console.debug(`isUserProfileComplete: ${isUserProfileComplete}`);
@@ -179,9 +119,9 @@ export default function SignInPage() {
                 <Button className="w-full" onClick={() => { setSignInOption(SignInOptions.phone) }}>
                   Phone SignIn
                 </Button>
-                <Button className="w-full" onClick={() => { setSignInOption(SignInOptions.emailLink) }}>
+                {/* <Button className="w-full" onClick={() => { setSignInOption(SignInOptions.emailLink) }}>
                   Email Link SignIn
-                </Button>
+                </Button> */}
                 <Button className="w-full" onClick={googleSignIn}>
                   Google SignIn
                 </Button>
@@ -222,7 +162,6 @@ export default function SignInPage() {
             By continuing, you are indicating that you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
           </div>
         </div>
-        <FirebaseWebUI />
       </div>
     </>
   )
