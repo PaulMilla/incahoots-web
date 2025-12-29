@@ -6,7 +6,10 @@
       "Bash(cat:*)",
       "Bash(git checkout:*)",
       "Bash(npm run lint:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Skill(superpowers:brainstorming)",
+      "Bash(git commit:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []

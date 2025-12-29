@@ -9,8 +9,46 @@ import EventPage from "./Events/EventPage";
 import SignInPage from "./SignIn/SignInPage";
 import EventsPage from "./Events/EventsPage";
 import NewEventPage from "./Events/NewEventPage";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import { ThemeProvider } from "@/components/ui/theme-provider";
+
+// Intercept console.error in development to show toast notifications
+if (import.meta.env.DEV) {
+  const originalError = console.error;
+  let lastErrorMessage = '';
+  let lastErrorTime = 0;
+
+  const formatErrorMessage = (args: any[]): string => {
+    // Convert all arguments to strings and join with spaces
+    const message = args.map(arg =>
+      typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+    ).join(' ');
+
+    // Truncate if longer than 150 characters
+    return message.length > 150
+      ? message.substring(0, 150) + '...'
+      : message;
+  };
+
+  console.error = (...args: any[]) => {
+    // Always call original console.error first
+    originalError(...args);
+
+    // Format message
+    const message = formatErrorMessage(args);
+    const now = Date.now();
+
+    // Only show toast if different message or >1 second since last
+    if (message !== lastErrorMessage || now - lastErrorTime > 1000) {
+      toast.error(message, {
+        autoClose: 5000, // 5 seconds
+        position: 'bottom-right'
+      });
+      lastErrorMessage = message;
+      lastErrorTime = now;
+    }
+  };
+}
 
 const router = createBrowserRouter([
   {
