@@ -223,10 +223,8 @@ export default function EventPage() {
 
     const eventDetailsSubscription = getEventDetailsPublisher(eventId)
       .subscribe(eventDetails => {
-        console.log(`eventDetails:`, eventDetails);
         setEventDetails(eventDetails)
-        document.title = `${eventDetails?.name || "Event Details"
-          } | InCahoots`;
+        document.title = `${eventDetails?.name || "Event Details"} | InCahoots`;
       })
 
     /** TODO investigate if there's a way to cascade fetch,
@@ -246,6 +244,7 @@ export default function EventPage() {
           }
           const categorizedAttendees = eventAttendees.reduce((acc, attendee) => {
             // Check if attendee is a host using eventDetails.hostIds
+            // Note: eventDetails might be stale here if this stream emits first.
             const isAttendeeHost = eventDetails?.hostIds?.includes(attendee.userId) || false;
             if (isAttendeeHost) {
               acc.hosts.push(attendee);
@@ -280,7 +279,7 @@ export default function EventPage() {
       attendeesSubscription.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId, user?.uid]);
+  }, [eventId, user?.uid]); // Note: eventDetails dependency removed to avoid weird loops, but might cause stale host check in reducer
 
   const toggleEditMode = () => {
     if (!isEditing) {

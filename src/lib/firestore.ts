@@ -25,7 +25,9 @@ const db = getFirestore(app);
 const fireStoreUrlString = import.meta.env.VITE_FIRESTORE_URL
 if (fireStoreUrlString && isLocalhost(fireStoreUrlString)) {
   const localFireStoreUrl = new URL(fireStoreUrlString)
-  connectFirestoreEmulator(db, localFireStoreUrl.hostname, parseInt(localFireStoreUrl.port))
+  // Use 'localhost' instead of '127.0.0.1' to avoid "Offline" errors in some browser environments
+  const hostname = localFireStoreUrl.hostname === '127.0.0.1' ? 'localhost' : localFireStoreUrl.hostname;
+  connectFirestoreEmulator(db, hostname, parseInt(localFireStoreUrl.port))
 }
 
 export function getEventAttendeePublisher(eventId: string, userId: string): Observable<Attendee> {
