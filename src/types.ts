@@ -69,6 +69,7 @@ export type CreateEventBody = {
     address?: string,
     geoPoint?: GeoPoint,
   },
+  status?: EventStatus,
 }
 
 export type UpdateEventBody = CreateEventBody & { id: string }

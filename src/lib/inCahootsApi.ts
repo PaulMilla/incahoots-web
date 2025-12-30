@@ -69,3 +69,39 @@ export async function getDownloadAllUrl(eventId: string) {
     console.log("Download all URL response:", response);
     return response.downloadURL;
 }
+
+export async function publishEvent(eventId: string): Promise<{ success: boolean; error?: string }> {
+    return post(`${apiUrl}/publishEvent`, { eventId });
+}
+
+export async function cancelEvent(eventId: string): Promise<{ success: boolean; error?: string }> {
+    return post(`${apiUrl}/cancelEvent`, { eventId });
+}
+
+export async function deleteEvent(eventId: string): Promise<{ success: boolean; error?: string }> {
+    const token = await auth.currentUser?.getIdToken();
+    const response = await fetch(`${apiUrl}/deleteEvent`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ eventId }),
+    });
+    return response.json();
+}
+
+export async function addCoHost(
+    eventId: string,
+    userId: string,
+    fullName: string
+): Promise<{ success: boolean; error?: string }> {
+    return post(`${apiUrl}/addCoHost`, { eventId, userId, fullName });
+}
+
+export async function removeCoHost(
+    eventId: string,
+    userId: string
+): Promise<{ success: boolean; error?: string }> {
+    return post(`${apiUrl}/removeCoHost`, { eventId, userId });
+}
