@@ -1,67 +1,67 @@
-import { useState } from "react";
-import { createEvent } from "../lib/inCahootsApi"
-import { CreateEventBody, NewEventDetails } from "../types";
-import { useNavigate } from "react-router-dom";
-import NavigationBar from "../NavigationBar";
-import { convertDateToFirestoreTimestamp, convertFirestoreTimestampToIsoString } from "@/utils/timestamps";
-import { Button } from "@/components/ui/button";
-import { EditableDetailsCard, EditableEventTitle } from "./EditableDetailsCard";
+// src/Events/NewEventPage.tsx
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import * as api from '../lib/inCahootsApi';
+
+function getDefaultEventDetails(): api.CreateEventBody {
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() + 7); // 1 week from now
+  startDate.setHours(18, 0, 0, 0); // 6 PM
+
+  const endDate = new Date(startDate);
+  endDate.setHours(19, 0, 0, 0); // 7 PM (1 hour later)
+
+  return {
+    name: 'Untitled Event',
+    bodyText: '',
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+    location: { name: 'TBD' },
+    status: 'planning',
+  };
+}
 
 export default function NewEventPage() {
-    const navigate = useNavigate();
-    const [newEventDetails] = useState<NewEventDetails>(
-        {
-            // TODO: Use momentJS to default to the weekend
-            startDate: convertDateToFirestoreTimestamp(new Date())
-        }
-    );
+  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
 
-    async function onCreateNewEvent() {
-        const validateNewEvent = (event: NewEventDetails) => {
-            if (!(event.location?.name || event.location?.customLocation)) {
-                console.error(`validation failed: event location is invalid`);
-                return false;
-            }
-
-            return event;
-        };
-
-        try {
-            if (!validateNewEvent(newEventDetails)) {
-                console.debug(`TODO: react to invalid fields in new event`);
-                return;
-            }
-
-            const body: CreateEventBody = {
-                name: newEventDetails.name!,
-                bodyText: newEventDetails.bodyText!,
-                startDate: convertFirestoreTimestampToIsoString(newEventDetails.startDate),
-                endDate: convertFirestoreTimestampToIsoString(newEventDetails.endDate ?? newEventDetails.startDate),
-                location: {
-                    name: newEventDetails.location?.name ?? newEventDetails.location?.customLocation ?? "oops, try again"
-                }
-            };
-            const response = await createEvent(body);
-            console.info(response);
-            navigate(`/events/${response.eventId}`);
-        } catch (error) {
-            console.error(`Error after trying to create new event`, error);
-        }
+  useEffect(() => {
+    async function createDraftEvent() {
+      try {
+        const defaultEvent = getDefaultEventDetails();
+        const response = await api.createEvent(defaultEvent);
+        navigate(`/events/${response.eventId}`, { replace: true });
+      } catch (err) {
+        console.error('Failed to create event:', err);
+        setError('Failed to create event. Please try again.');
+      }
     }
 
+    createDraftEvent();
+  }, [navigate]);
+
+  if (error) {
     return (
-        <>
-            <NavigationBar />
-            <div className="p-6 py-8 px-4 mx-auto max-w-(--breakpoint-xl) text-left lg:py-16">
-                <div className="space-y-6">
-                    <EditableEventTitle
-                        eventDetails={newEventDetails}
-                        isEditing={true}
-                    />
-                    <EditableDetailsCard eventDetails={newEventDetails} eventHosts={[]} isEditing={true} />
-                    <Button onClick={onCreateNewEvent}>Create event</Button>
-                </div>
-            </div>
-        </>
-    )
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Creating your event...</p>
+      </div>
+    </div>
+  );
 }
