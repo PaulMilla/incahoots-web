@@ -21,6 +21,7 @@ import { DeleteDraftDialog } from '../components/DeleteDraftDialog';
 import { CancelledEventBanner } from '../components/CancelledEventBanner';
 import { PlanningAccessDenied } from '../components/PlanningAccessDenied';
 import { CoHostManager } from '../components/CoHostManager';
+import { NotifyGuestsDialog } from '../components/NotifyGuestsDialog';
 import { useAutoSave } from '../hooks/useAutoSave';
 
 type CategorizedAttendees = {
@@ -199,6 +200,8 @@ export default function EventPage() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showNotifyDialog, setShowNotifyDialog] = useState(false);
+  const [pendingEventUpdate, setPendingEventUpdate] = useState<UpdateEventBody | null>(null);
 
   // pull eventId from URL params
   const { eventId } = useParams();
@@ -305,9 +308,27 @@ export default function EventPage() {
 
         console.debug("Sending updateEventBody", updateEventBody);
 
-        api.updateEvent(updateEventBody);
+        // For published events, show notification dialog
+        if (eventDetails?.status === 'published') {
+          setPendingEventUpdate(updateEventBody);
+          setShowNotifyDialog(true);
+        } else {
+          api.updateEvent(updateEventBody);
+        }
       }
       setIsEditing(false);
+    }
+  };
+
+  const handleNotifyGuests = async (notify: boolean) => {
+    setShowNotifyDialog(false);
+    if (pendingEventUpdate) {
+      await api.updateEvent(pendingEventUpdate);
+      // TODO: Implement actual notification logic when notify is true
+      if (notify) {
+        console.log('TODO: Send notifications to guests');
+      }
+      setPendingEventUpdate(null);
     }
   };
 
@@ -389,6 +410,13 @@ export default function EventPage() {
         onOpenChange={setShowDeleteDialog}
         onConfirm={handleDelete}
         isDeleting={isDeleting}
+      />
+
+      {/* Notify guests dialog */}
+      <NotifyGuestsDialog
+        open={showNotifyDialog}
+        onOpenChange={setShowNotifyDialog}
+        onConfirm={handleNotifyGuests}
       />
 
       <NavigationBar />
