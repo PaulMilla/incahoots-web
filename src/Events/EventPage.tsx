@@ -279,6 +279,7 @@ export default function EventPage() {
       eventDetailsSubscription.unsubscribe();
       attendeesSubscription.unsubscribe();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, user?.uid]);
 
   const toggleEditMode = () => {
@@ -383,7 +384,8 @@ export default function EventPage() {
     onSaveError: (err) => console.error('Auto-save failed:', err),
   });
 
-  function handleFieldChange(field: string, value: any) {
+  function handleFieldChange(field: string, value: unknown) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     queueChange(field as any, value);
   }
 

@@ -1,4 +1,4 @@
-import { Attendee, RsvpState, UpdateRsvpBody, UserEvent } from "../types";
+import { Attendee, UpdateRsvpBody, UserEvent } from "../types";
 import { Link } from "react-router-dom";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";

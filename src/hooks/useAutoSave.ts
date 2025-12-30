@@ -1,7 +1,7 @@
 // src/hooks/useAutoSave.ts
 import { useRef, useCallback } from 'react';
 import * as api from '../lib/inCahootsApi';
-import { EventDetails } from '../types';
+import { EventDetails, UpdateEventBody } from '../types';
 
 type PartialEventUpdate = Partial<Pick<EventDetails, 'name' | 'bodyText' | 'startDate' | 'endDate' | 'location'>>;
 
@@ -37,7 +37,7 @@ export function useAutoSave({
 
     try {
       // Convert Timestamps to ISO strings for API
-      const updateBody: api.UpdateEventBody = {
+      const updateBody: UpdateEventBody = {
         id: eventId,
         name: changes.name || '',
         bodyText: changes.bodyText || '',

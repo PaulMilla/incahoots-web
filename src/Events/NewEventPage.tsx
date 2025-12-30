@@ -2,8 +2,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as api from '../lib/inCahootsApi';
+import { CreateEventBody } from '../types';
 
-function getDefaultEventDetails(): api.CreateEventBody {
+function getDefaultEventDetails(): CreateEventBody {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() + 7); // 1 week from now
   startDate.setHours(18, 0, 0, 0); // 6 PM

@@ -9,7 +9,10 @@
       "Bash(git add:*)",
       "Skill(superpowers:brainstorming)",
       "Bash(git commit:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(test:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

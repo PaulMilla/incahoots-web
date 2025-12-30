@@ -14,7 +14,7 @@ type EventDetailsCardProps = {
   eventHosts: Attendee[];
   isEditing: boolean | undefined;
   autoSave?: boolean;
-  onFieldChange?: (field: string, value: any) => void;
+  onFieldChange?: (field: string, value: unknown) => void;
 };
 
 export function EditableDetailsCard({ eventDetails, eventHosts, isEditing = false, autoSave = false, onFieldChange }: EventDetailsCardProps) {
@@ -180,7 +180,7 @@ type EditableEventTitleProps = {
   eventDetails: EventDetails | NewEventDetails;
   isEditing: boolean;
   autoSave?: boolean;
-  onFieldChange?: (field: string, value: any) => void;
+  onFieldChange?: (field: string, value: unknown) => void;
 };
 
 export function EditableEventTitle({ eventDetails, isEditing = false, autoSave = false, onFieldChange }: EditableEventTitleProps) {
