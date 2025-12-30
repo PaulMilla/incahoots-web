@@ -39,9 +39,9 @@ function RsvpDropdown({ attendeeDetails }: { attendeeDetails: Attendee }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         {[
-          RsvpState.going,
-          RsvpState.notGoing,
-          RsvpState.maybe
+          'going',
+          'notGoing',
+          'maybe'
         ].map((state) => (
           <DropdownMenuItem
             key={state}
@@ -58,7 +58,7 @@ function RsvpDropdown({ attendeeDetails }: { attendeeDetails: Attendee }) {
 
 export function EventCard({ event }: { event: UserEvent }) {
   const eventDetails = event.eventDetails;
-  const isHost = event.myAttendeeDetails.isHost;
+  const isHost = eventDetails.hostIds?.includes(event.myAttendeeDetails.userId) || false;
 
   return (
     <Card>

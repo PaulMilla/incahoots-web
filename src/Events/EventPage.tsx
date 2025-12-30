@@ -110,9 +110,9 @@ function RSVPDropdown({ eventId }: { eventId: string }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => onRsvpSelected(RsvpState.going)}>Going</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onRsvpSelected(RsvpState.notGoing)}>Not Going</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onRsvpSelected(RsvpState.maybe)}>Maybe</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onRsvpSelected('going')}>Going</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onRsvpSelected('notGoing')}>Not Going</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onRsvpSelected('maybe')}>Maybe</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
@@ -241,7 +241,9 @@ export default function EventPage() {
             unknownList: [],
           }
           const categorizedAttendees = eventAttendees.reduce((acc, attendee) => {
-            if (attendee.isHost) {
+            // Check if attendee is a host using eventDetails.hostIds
+            const isAttendeeHost = eventDetails?.hostIds?.includes(attendee.userId) || false;
+            if (isAttendeeHost) {
               acc.hosts.push(attendee);
             }
 
