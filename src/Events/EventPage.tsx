@@ -20,6 +20,7 @@ import { PlanningModeBanner } from '../components/PlanningModeBanner';
 import { DeleteDraftDialog } from '../components/DeleteDraftDialog';
 import { CancelledEventBanner } from '../components/CancelledEventBanner';
 import { PlanningAccessDenied } from '../components/PlanningAccessDenied';
+import { CoHostManager } from '../components/CoHostManager';
 import { useAutoSave } from '../hooks/useAutoSave';
 
 type CategorizedAttendees = {
@@ -401,12 +402,20 @@ export default function EventPage() {
                 autoSave={isPlanning}
                 onFieldChange={isPlanning ? handleFieldChange : undefined}
               />
-              <div className="flex justify-right">
+              <div className="flex justify-right gap-2">
                 {isEditing && !isPlanning && (
                   <>
                     <Button onClick={toggleEditMode}>Save Changes</Button>
                     <Button variant="destructive" onClick={discardEditChanges}>Discard Changes</Button>
                   </>
+                )}
+                {isHost && eventId && (
+                  <CoHostManager
+                    eventId={eventId}
+                    hostIds={eventDetails.hostIds}
+                    attendees={[...categorizedAttendees.hosts, ...categorizedAttendees.goingList, ...categorizedAttendees.notGoingList, ...categorizedAttendees.maybeList, ...categorizedAttendees.unknownList]}
+                    currentUserId={currentUserId || ''}
+                  />
                 )}
                 {!isPlanning && <SettingsDropdown isEditing={isEditing} onEditEventClicked={toggleEditMode} />}
               </div>
