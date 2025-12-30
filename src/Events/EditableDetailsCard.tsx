@@ -13,15 +13,20 @@ type EventDetailsCardProps = {
   eventDetails: EventDetails | NewEventDetails;
   eventHosts: Attendee[];
   isEditing: boolean | undefined;
+  autoSave?: boolean;
+  onFieldChange?: (field: string, value: any) => void;
 };
 
-export function EditableDetailsCard({ eventDetails, eventHosts, isEditing = false }: EventDetailsCardProps) {
+export function EditableDetailsCard({ eventDetails, eventHosts, isEditing = false, autoSave = false, onFieldChange }: EventDetailsCardProps) {
   const EventTime = () => {
     const eventStartDateTime = new Date(eventDetails.startDate.seconds * 1000);
     const [newStartTime, setNewEventTime] = useState<Date>(eventStartDateTime);
 
     useEffect(() => {
       eventDetails.startDate = convertDateToFirestoreTimestamp(newStartTime);
+      if (autoSave && onFieldChange) {
+        onFieldChange('startDate', convertDateToFirestoreTimestamp(newStartTime));
+      }
     }, [newStartTime]);
 
     const getTimeString = (eventTime: Date | undefined) => {
@@ -76,6 +81,9 @@ export function EditableDetailsCard({ eventDetails, eventHosts, isEditing = fals
             name: newEventLocation
           }
         }
+        if (autoSave && onFieldChange) {
+          onFieldChange('location', eventDetails.location);
+        }
       }
     }, [newEventLocation]);
 
@@ -88,6 +96,9 @@ export function EditableDetailsCard({ eventDetails, eventHosts, isEditing = fals
           geoPoint: location.geoPoint,
         };
         setNewEventLocation(location.name);
+        if (autoSave && onFieldChange) {
+          onFieldChange('location', eventDetails.location);
+        }
       }
     };
 
@@ -132,6 +143,9 @@ export function EditableDetailsCard({ eventDetails, eventHosts, isEditing = fals
 
     useEffect(() => {
       eventDetails.bodyText = newEventDescription;
+      if (autoSave && onFieldChange) {
+        onFieldChange('bodyText', newEventDescription);
+      }
     }, [newEventDescription]);
 
     return isEditing ? (
@@ -165,14 +179,19 @@ export function EditableDetailsCard({ eventDetails, eventHosts, isEditing = fals
 type EditableEventTitleProps = {
   eventDetails: EventDetails | NewEventDetails;
   isEditing: boolean;
+  autoSave?: boolean;
+  onFieldChange?: (field: string, value: any) => void;
 };
 
-export function EditableEventTitle({ eventDetails, isEditing = false }: EditableEventTitleProps) {
+export function EditableEventTitle({ eventDetails, isEditing = false, autoSave = false, onFieldChange }: EditableEventTitleProps) {
   const EventTitle = () => {
     const [newEventName, setNewEventName] = useState<string>(eventDetails.name ?? "");
 
     useEffect(() => {
       eventDetails.name = newEventName;
+      if (autoSave && onFieldChange) {
+        onFieldChange('name', newEventName);
+      }
     }, [newEventName]);
 
     return isEditing ? (
