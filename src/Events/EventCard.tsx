@@ -59,17 +59,31 @@ function RsvpDropdown({ attendeeDetails }: { attendeeDetails: Attendee }) {
 export function EventCard({ event }: { event: UserEvent }) {
   const eventDetails = event.eventDetails;
   const isHost = eventDetails.hostIds?.includes(event.myAttendeeDetails.userId) || false;
+  const isPlanning = eventDetails.status === 'planning';
+  const isCancelled = eventDetails.status === 'cancelled';
 
   return (
-    <Card>
+    <Card className={isCancelled ? 'opacity-50' : ''}>
       <CardHeader className="flex flex-row items-start justify-between">
         <div>
           <CardTitle>
             <Link to={`/events/${eventDetails.id}`}>
-              <h1 className="text-2xl font-medium tracking-tight flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 {isHost && (<Crown />)}
-                {eventDetails.name ?? "TODO: Invalid (empty) event name"}
-              </h1>
+                <h1 className="text-2xl font-medium tracking-tight">
+                  {eventDetails.name ?? "TODO: Invalid (empty) event name"}
+                </h1>
+                {isPlanning && (
+                  <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">
+                    Draft
+                  </span>
+                )}
+                {isCancelled && (
+                  <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+                    Cancelled
+                  </span>
+                )}
+              </div>
             </Link>
           </CardTitle>
           <CardDescription>
