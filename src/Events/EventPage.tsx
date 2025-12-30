@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getEventAttendeesPublisher, getEventDetailsPublisher } from "../lib/firestore";
 import { filterNullish } from "../lib/rxjs";
 import { Attendee, EventDetails, RsvpState, UpdateEventBody, UpdateRsvpBody } from "../types";
@@ -16,6 +16,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ChevronDown, Loader2Icon, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EditableDetailsCard, EditableEventTitle } from "./EditableDetailsCard";
+import { PlanningModeBanner } from '../components/PlanningModeBanner';
+import { DeleteDraftDialog } from '../components/DeleteDraftDialog';
+import { CancelledEventBanner } from '../components/CancelledEventBanner';
+import { PlanningAccessDenied } from '../components/PlanningAccessDenied';
+import { useAutoSave } from '../hooks/useAutoSave';
 
 type CategorizedAttendees = {
   hosts: Attendee[];
@@ -189,9 +194,21 @@ export default function EventPage() {
       unknownList: [],
     });
 
+  // Planning mode state
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
   // pull eventId from URL params
   const { eventId } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Mode detection
+  const currentUserId = user?.uid;
+  const isPlanning = eventDetails?.status === 'planning';
+  const isCancelled = eventDetails?.status === 'cancelled';
+  const isHost = eventDetails?.hostIds?.includes(currentUserId || '') || false;
 
   // fetch event details and attendees by eventId
   useEffect(() => {
@@ -298,8 +315,79 @@ export default function EventPage() {
     setIsEditing(false);
   };
 
+  // Planning mode handlers
+  async function handlePublish() {
+    if (!eventDetails?.id) return;
+    setIsPublishing(true);
+    try {
+      const result = await api.publishEvent(eventDetails.id);
+      if (!result.success) {
+        alert(result.error || 'Failed to publish');
+      }
+      // Event will update via subscription
+    } catch (err) {
+      console.error('Publish failed:', err);
+      alert('Failed to publish event');
+    } finally {
+      setIsPublishing(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!eventDetails?.id) return;
+    setIsDeleting(true);
+    try {
+      const result = await api.deleteEvent(eventDetails.id);
+      if (result.success) {
+        navigate('/events');
+      } else {
+        alert(result.error || 'Failed to delete');
+      }
+    } catch (err) {
+      console.error('Delete failed:', err);
+      alert('Failed to delete event');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  }
+
+  // Auto-save for planning mode
+  const { queueChange } = useAutoSave({
+    eventId: eventDetails?.id || '',
+    debounceMs: 500,
+    onSaveError: (err) => console.error('Auto-save failed:', err),
+  });
+
+  function handleFieldChange(field: string, value: any) {
+    queueChange(field as any, value);
+  }
+
+  // Check access for planning events
+  if (isPlanning && !isHost) {
+    return <PlanningAccessDenied />;
+  }
+
   return (
     <>
+      {/* Banners */}
+      {isPlanning && isHost && (
+        <PlanningModeBanner
+          onPublish={handlePublish}
+          onDelete={() => setShowDeleteDialog(true)}
+          isPublishing={isPublishing}
+        />
+      )}
+      {isCancelled && <CancelledEventBanner />}
+
+      {/* Delete confirmation dialog */}
+      <DeleteDraftDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={handleDelete}
+        isDeleting={isDeleting}
+      />
+
       <NavigationBar />
       <div className="max-w-(--breakpoint-xl) mx-auto text-gray-700 px-5 mt-8">
         {eventDetails ? (
@@ -307,23 +395,27 @@ export default function EventPage() {
             <div className="flex justify-between">
               <EditableEventTitle
                 eventDetails={(isEditing && newEventDetails) ? newEventDetails : eventDetails}
-                isEditing={isEditing}
+                isEditing={isPlanning || isEditing}
+                autoSave={isPlanning}
+                onFieldChange={isPlanning ? handleFieldChange : undefined}
               />
               <div className="flex justify-right">
-                {isEditing && (
+                {isEditing && !isPlanning && (
                   <>
                     <Button onClick={toggleEditMode}>Save Changes</Button>
                     <Button variant="destructive" onClick={discardEditChanges}>Discard Changes</Button>
                   </>
                 )}
-                <SettingsDropdown isEditing={isEditing} onEditEventClicked={toggleEditMode} />
+                {!isPlanning && <SettingsDropdown isEditing={isEditing} onEditEventClicked={toggleEditMode} />}
               </div>
             </div>
             <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
               <EditableDetailsCard
                 eventDetails={(isEditing && newEventDetails) ? newEventDetails : eventDetails}
                 eventHosts={categorizedAttendees.hosts}
-                isEditing={isEditing}
+                isEditing={isPlanning || isEditing}
+                autoSave={isPlanning}
+                onFieldChange={isPlanning ? handleFieldChange : undefined}
               />
               {eventId && (
                 <RsvpCard
