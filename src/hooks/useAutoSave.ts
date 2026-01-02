@@ -1,5 +1,7 @@
 // src/hooks/useAutoSave.ts
 import { useRef, useCallback } from 'react';
+import { doc, getFirestore, updateDoc } from 'firebase/firestore';
+import { app } from '../lib/firebaseApp';
 import * as api from '../lib/inCahootsApi';
 import { EventDetails, UpdateEventBody } from '../types';
 
@@ -8,6 +10,7 @@ type PartialEventUpdate = Partial<Pick<EventDetails, 'name' | 'bodyText' | 'star
 interface UseAutoSaveOptions {
   eventId: string;
   debounceMs?: number;
+  useDirect?: boolean; // If true, write directly to Firestore (for planning mode)
   onSaveStart?: () => void;
   onSaveComplete?: () => void;
   onSaveError?: (error: Error) => void;
@@ -16,6 +19,7 @@ interface UseAutoSaveOptions {
 export function useAutoSave({
   eventId,
   debounceMs = 500,
+  useDirect = false,
   onSaveStart,
   onSaveComplete,
   onSaveError,
@@ -36,24 +40,52 @@ export function useAutoSave({
     onSaveStart?.();
 
     try {
-      // Convert Timestamps to ISO strings for API
-      const updateBody: UpdateEventBody = {
-        id: eventId,
-        name: changes.name || '',
-        bodyText: changes.bodyText || '',
-        startDate: changes.startDate?.toDate().toISOString() || new Date().toISOString(),
-        endDate: changes.endDate?.toDate().toISOString() || new Date().toISOString(),
-        location: changes.location || { name: '' },
-      };
+      if (useDirect) {
+        // Direct Firestore write for planning mode
+        const db = getFirestore(app);
+        const eventRef = doc(db, 'events', eventId);
 
-      await api.updateEvent(updateBody);
+        // Build update object, only including changed fields
+        const updateData: Record<string, unknown> = {};
+
+        if (changes.name !== undefined) {
+          updateData.name = changes.name;
+        }
+        if (changes.bodyText !== undefined) {
+          updateData.bodyText = changes.bodyText;
+        }
+        if (changes.startDate !== undefined) {
+          updateData.startDate = changes.startDate;
+        }
+        if (changes.endDate !== undefined) {
+          updateData.endDate = changes.endDate;
+        }
+        if (changes.location !== undefined) {
+          updateData.location = changes.location;
+        }
+
+        await updateDoc(eventRef, updateData);
+      } else {
+        // Use API for published events
+        const updateBody: UpdateEventBody = {
+          id: eventId,
+          name: changes.name || '',
+          bodyText: changes.bodyText || '',
+          startDate: changes.startDate?.toDate().toISOString() || new Date().toISOString(),
+          endDate: changes.endDate?.toDate().toISOString() || new Date().toISOString(),
+          location: changes.location || { name: '' },
+        };
+
+        await api.updateEvent(updateBody);
+      }
+
       onSaveComplete?.();
     } catch (error) {
       onSaveError?.(error as Error);
     } finally {
       isSaving.current = false;
     }
-  }, [eventId, onSaveStart, onSaveComplete, onSaveError]);
+  }, [eventId, useDirect, onSaveStart, onSaveComplete, onSaveError]);
 
   const queueChange = useCallback(
     <K extends keyof PartialEventUpdate>(field: K, value: PartialEventUpdate[K]) => {

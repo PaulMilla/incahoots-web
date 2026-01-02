@@ -12,12 +12,16 @@ const apiUrl = `${baseUrl}/api`;
 async function post(url: string, body: any, bearerToken: string | undefined = undefined) {
     let token = bearerToken
     if (!token) {
+        // Wait for auth.currentUser to be available (handles race condition with auth state)
+        await auth.authStateReady();
+
         if (!auth.currentUser) {
-            console.error(`currentUser is nil?`)
-            return
+            console.error(`currentUser is nil after waiting for auth state readiness`);
+            throw new Error('User not authenticated');
         }
         const user = auth.currentUser
         token = await user.getIdToken()
+        console.debug('Got auth token for user:', user.uid);
     }
 
     const response = await fetch(url, {
@@ -29,6 +33,12 @@ async function post(url: string, body: any, bearerToken: string | undefined = un
         },
         body: JSON.stringify(body)
     });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`API error ${response.status} for ${url}:`, errorText);
+        throw new Error(`API error ${response.status}: ${errorText}`);
+    }
 
     return await response.json();
 }
@@ -45,27 +55,27 @@ export async function registrationComplete(user: AuthUser) {
 }
 
 export async function createEvent(body: CreateEventBody) {
-    const response = await post(`${apiUrl}/createEvent`, body) as {eventId: string};
+    const response = await post(`${apiUrl}/createEvent`, body) as { eventId: string };
     return response;
 }
 
 export async function updateEvent(body: UpdateEventBody) {
-    const response = await post(`${apiUrl}/updateEvent`, body) as {success: boolean};
+    const response = await post(`${apiUrl}/updateEvent`, body) as { success: boolean };
     return response;
 }
 
 export async function updateRsvp(body: UpdateRsvpBody) {
-    const response = await post(`${apiUrl}/updateRsvp`, body) as {success: boolean};
+    const response = await post(`${apiUrl}/updateRsvp`, body) as { success: boolean };
     return response;
 }
 
 export async function inviteContacts(body: EventInvitesBody) {
-    const response = await post(`${apiUrl}/inviteContacts`, body) as {success: boolean};
+    const response = await post(`${apiUrl}/inviteContacts`, body) as { success: boolean };
     return response;
 }
 
 export async function getDownloadAllUrl(eventId: string) {
-    const response = await post(`${apiUrl}/events/${eventId}/media/downloadAll`, {eventId}) as {success: boolean, downloadURL: string};
+    const response = await post(`${apiUrl}/events/${eventId}/media/downloadAll`, { eventId }) as { success: boolean, downloadURL: string };
     console.log("Download all URL response:", response);
     return response.downloadURL;
 }

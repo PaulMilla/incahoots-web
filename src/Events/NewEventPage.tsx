@@ -1,8 +1,8 @@
-// src/Events/NewEventPage.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as api from '../lib/inCahootsApi';
 import { CreateEventBody } from '../types';
+import { useAuth, LoginState } from '../auth/FirebaseAuthContext';
 
 function getDefaultEventDetails(): CreateEventBody {
   const startDate = new Date();
@@ -24,7 +24,9 @@ function getDefaultEventDetails(): CreateEventBody {
 
 export default function NewEventPage() {
   const navigate = useNavigate();
+  const { loginState } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const hasCreatedEvent = useRef(false);
 
   useEffect(() => {
     async function createDraftEvent() {
@@ -38,8 +40,24 @@ export default function NewEventPage() {
       }
     }
 
-    createDraftEvent();
-  }, [navigate]);
+    if (loginState === LoginState.signedIn && !hasCreatedEvent.current) {
+      hasCreatedEvent.current = true;
+      createDraftEvent();
+    } else if (loginState === LoginState.loggedOut) {
+      navigate('/signIn?redirectUrl=/newEvent');
+    }
+  }, [navigate, loginState]);
+
+  if (loginState === LoginState.uninitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (

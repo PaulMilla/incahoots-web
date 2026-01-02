@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getEventAttendeesPublisher, getEventDetailsPublisher } from "../lib/firestore";
 import { filterNullish } from "../lib/rxjs";
@@ -376,17 +376,18 @@ export default function EventPage() {
     }
   }
 
-  // Auto-save for planning mode
+  // Auto-save for planning mode (uses direct Firestore writes) or published events (uses API)
   const { queueChange } = useAutoSave({
     eventId: eventDetails?.id || '',
     debounceMs: 500,
+    useDirect: isPlanning, // Direct Firestore writes for planning mode, API for published events
     onSaveError: (err) => console.error('Auto-save failed:', err),
   });
 
-  function handleFieldChange(field: string, value: unknown) {
+  const handleFieldChange = useCallback((field: string, value: unknown) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     queueChange(field as any, value);
-  }
+  }, [queueChange]);
 
   // Check access for planning events
   if (isPlanning && !isHost) {
