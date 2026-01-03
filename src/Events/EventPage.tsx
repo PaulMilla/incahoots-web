@@ -42,13 +42,16 @@ const RSVP_STATES: {
   notGoing: { ariaLabel: "not going", emoji: "❌" },
   maybe: { ariaLabel: "maybe", emoji: "❓" },
   unknown: { ariaLabel: "unknown", emoji: "🤷‍♀️" },
+  pending: { ariaLabel: "pending", emoji: "⏳" },
 });
 
 function AttendeeList({ attendees }: { attendees: Attendee[] }) {
   return (
     <ol className="flex flex-col gap-1 mt-2">
       {attendees.map((attendee) => {
-        const { ariaLabel, emoji } = RSVP_STATES[attendee.rsvpState];
+        // Defensive fallback for unknown rsvpState values
+        const rsvpInfo = RSVP_STATES[attendee.rsvpState] || RSVP_STATES.unknown;
+        const { ariaLabel, emoji } = rsvpInfo;
         return (
           <li
             className="min-w-fit"
