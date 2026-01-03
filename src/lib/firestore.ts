@@ -9,7 +9,7 @@ import {
   query,
   connectFirestoreEmulator,
 } from "firebase/firestore";
-import { map, switchMap } from 'rxjs/operators';
+import { map, switchMap, catchError } from 'rxjs/operators';
 import { Observable, combineLatest, of } from 'rxjs';
 
 // @ts-expect-error - Unfortunately types seem to be messed up
@@ -25,7 +25,9 @@ const db = getFirestore(app);
 const fireStoreUrlString = import.meta.env.VITE_FIRESTORE_URL
 if (fireStoreUrlString && isLocalhost(fireStoreUrlString)) {
   const localFireStoreUrl = new URL(fireStoreUrlString)
-  connectFirestoreEmulator(db, localFireStoreUrl.hostname, parseInt(localFireStoreUrl.port))
+  // Use 'localhost' instead of '127.0.0.1' to avoid "Offline" errors in some browser environments
+  const hostname = localFireStoreUrl.hostname === '127.0.0.1' ? 'localhost' : localFireStoreUrl.hostname;
+  connectFirestoreEmulator(db, hostname, parseInt(localFireStoreUrl.port))
 }
 
 export function getEventAttendeePublisher(eventId: string, userId: string): Observable<Attendee> {
@@ -78,39 +80,59 @@ export function getUserEventsPublisher(userId: string) {
 
   const userEvents$ = myEventInfos$.pipe(
     switchMap(myEventInfos => {
+
       if (myEventInfos.length === 0) {
         return of([]);
       }
-      const myEventIds = myEventInfos.map(x => x.eventId);
+
+      // Fetch each event detail individually to avoid one permission error failing the whole batch
+      const eventDetailsObservables = myEventInfos.map(info =>
+        getEventDetailsPublisher(info.eventId).pipe(
+          // If we can't read the event (e.g. permission denied), return undefined
+          // We need to import catchError and of from rxjs
+          catchError(err => {
+            console.error(`Error fetching event details for ${info.eventId}:`, err);
+            return of(undefined);
+          })
+        )
+      );
+
       return combineLatest([
         of(myEventInfos),
-        getEventsDetailsPublisher(myEventIds)
+        combineLatest(eventDetailsObservables)
       ]);
     }),
     switchMap(result => {
-      if (Array.isArray(result) && result.length === 2) {
-        const [myEventInfos, allEventDetails] = result as [UserEventInfo[], EventDetails[]];
-        const userAttendees$ = myEventInfos.map(eventInfo =>
-          getEventAttendeePublisher(eventInfo.eventId, userId)
-        );
-        return combineLatest(userAttendees$).pipe(
-          map(userAttendees => {
-            return userAttendees
-              .filter(attendee => !!attendee)
-              .map(attendee => {
-                const eventDetails = allEventDetails.find(e => e.id === attendee.eventId);
-                if (!eventDetails) {
-                  console.error(`Couldn't find eventDetail for eventId: ${attendee.eventId}`);
-                }
-                return {
-                  eventDetails: eventDetails!,
-                  myAttendeeDetails: attendee
-                } as UserEvent;
-              });
+      const [myEventInfos, allEventDetails] = result;
+      // allEventDetails may contain undefineds now
+
+
+      const userAttendees$ = myEventInfos.map(eventInfo =>
+        getEventAttendeePublisher(eventInfo.eventId, userId).pipe(
+          catchError(err => {
+            console.warn(`Error fetching attendee for ${eventInfo.eventId}`, err);
+            return of(undefined)
           })
-        );
-      }
-      return of([]);
+        )
+      );
+
+      return combineLatest(userAttendees$).pipe(
+        map(userAttendees => {
+
+          return userAttendees
+            .map((attendee, index) => {
+              if (!attendee) return null;
+              const eventDetails = allEventDetails[index];
+              if (!eventDetails) return null; // Event not found or permission denied
+
+              return {
+                eventDetails: eventDetails!,
+                myAttendeeDetails: attendee
+              } as UserEvent;
+            })
+            .filter(item => item !== null) as UserEvent[];
+        })
+      );
     })
   );
 

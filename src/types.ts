@@ -5,12 +5,9 @@
 
 import { Timestamp } from "firebase/firestore";
 
-export enum RsvpState {
-  going = "going",
-  notGoing = "notGoing",
-  maybe = "maybe",
-  unknown = "unknown"
-};
+export type EventStatus = 'planning' | 'published' | 'cancelled';
+
+export type RsvpState = 'going' | 'notGoing' | 'maybe' | 'unknown' | 'pending';
 
 type GeoPoint = {
   latitude: number;
@@ -38,22 +35,23 @@ export type NewEventDetails = {
 };
 
 export type EventDetails = {
-  bodyText: string;
-  endDate: Timestamp;
-  name: string;
-  location: Location;
   id: string;
+  name: string;
+  bodyText: string;
   startDate: Timestamp;
+  endDate: Timestamp;
+  location: Location;
   attendeeIds: string[];
+  status: EventStatus;
+  hostIds: string[];
 };
 
 export type Attendee = {
-  rsvpState: "going" | "notGoing" | "maybe" | "unknown";
-  eventId: string;
-  isHost: boolean;
-  fullName: string;
   id: string;
   userId: string;
+  eventId: string;
+  fullName: string;
+  rsvpState: RsvpState;
 };
 
 export type UserEvent = {
@@ -71,6 +69,7 @@ export type CreateEventBody = {
     address?: string,
     geoPoint?: GeoPoint,
   },
+  status?: EventStatus,
 }
 
 export type UpdateEventBody = CreateEventBody & { id: string }

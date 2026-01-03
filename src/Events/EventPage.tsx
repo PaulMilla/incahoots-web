@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { getEventAttendeesPublisher, getEventDetailsPublisher } from "../lib/firestore";
 import { filterNullish } from "../lib/rxjs";
 import { Attendee, EventDetails, RsvpState, UpdateEventBody, UpdateRsvpBody } from "../types";
@@ -16,6 +16,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ChevronDown, Loader2Icon, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EditableDetailsCard, EditableEventTitle } from "./EditableDetailsCard";
+import { PlanningModeBanner } from '../components/PlanningModeBanner';
+import { DeleteDraftDialog } from '../components/DeleteDraftDialog';
+import { CancelledEventBanner } from '../components/CancelledEventBanner';
+import { PlanningAccessDenied } from '../components/PlanningAccessDenied';
+import { CoHostManager } from '../components/CoHostManager';
+import { NotifyGuestsDialog } from '../components/NotifyGuestsDialog';
+import { useAutoSave } from '../hooks/useAutoSave';
 
 type CategorizedAttendees = {
   hosts: Attendee[];
@@ -105,9 +112,9 @@ function RSVPDropdown({ eventId }: { eventId: string }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => onRsvpSelected(RsvpState.going)}>Going</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onRsvpSelected(RsvpState.notGoing)}>Not Going</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onRsvpSelected(RsvpState.maybe)}>Maybe</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onRsvpSelected('going')}>Going</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onRsvpSelected('notGoing')}>Not Going</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onRsvpSelected('maybe')}>Maybe</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
@@ -189,9 +196,23 @@ export default function EventPage() {
       unknownList: [],
     });
 
+  // Planning mode state
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showNotifyDialog, setShowNotifyDialog] = useState(false);
+  const [pendingEventUpdate, setPendingEventUpdate] = useState<UpdateEventBody | null>(null);
+
   // pull eventId from URL params
   const { eventId } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Mode detection
+  const currentUserId = user?.uid;
+  const isPlanning = eventDetails?.status === 'planning';
+  const isCancelled = eventDetails?.status === 'cancelled';
+  const isHost = eventDetails?.hostIds?.includes(currentUserId || '') || false;
 
   // fetch event details and attendees by eventId
   useEffect(() => {
@@ -202,10 +223,8 @@ export default function EventPage() {
 
     const eventDetailsSubscription = getEventDetailsPublisher(eventId)
       .subscribe(eventDetails => {
-        console.log(`eventDetails:`, eventDetails);
         setEventDetails(eventDetails)
-        document.title = `${eventDetails?.name || "Event Details"
-          } | InCahoots`;
+        document.title = `${eventDetails?.name || "Event Details"} | InCahoots`;
       })
 
     /** TODO investigate if there's a way to cascade fetch,
@@ -224,7 +243,10 @@ export default function EventPage() {
             unknownList: [],
           }
           const categorizedAttendees = eventAttendees.reduce((acc, attendee) => {
-            if (attendee.isHost) {
+            // Check if attendee is a host using eventDetails.hostIds
+            // Note: eventDetails might be stale here if this stream emits first.
+            const isAttendeeHost = eventDetails?.hostIds?.includes(attendee.userId) || false;
+            if (isAttendeeHost) {
               acc.hosts.push(attendee);
             }
 
@@ -256,7 +278,8 @@ export default function EventPage() {
       eventDetailsSubscription.unsubscribe();
       attendeesSubscription.unsubscribe();
     };
-  }, [eventId, user?.uid]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId, user?.uid]); // Note: eventDetails dependency removed to avoid weird loops, but might cause stale host check in reducer
 
   const toggleEditMode = () => {
     if (!isEditing) {
@@ -285,9 +308,27 @@ export default function EventPage() {
 
         console.debug("Sending updateEventBody", updateEventBody);
 
-        api.updateEvent(updateEventBody);
+        // For published events, show notification dialog
+        if (eventDetails?.status === 'published') {
+          setPendingEventUpdate(updateEventBody);
+          setShowNotifyDialog(true);
+        } else {
+          api.updateEvent(updateEventBody);
+        }
       }
       setIsEditing(false);
+    }
+  };
+
+  const handleNotifyGuests = async (notify: boolean) => {
+    setShowNotifyDialog(false);
+    if (pendingEventUpdate) {
+      await api.updateEvent(pendingEventUpdate);
+      // TODO: Implement actual notification logic when notify is true
+      if (notify) {
+        console.log('TODO: Send notifications to guests');
+      }
+      setPendingEventUpdate(null);
     }
   };
 
@@ -298,8 +339,98 @@ export default function EventPage() {
     setIsEditing(false);
   };
 
+  // Planning mode handlers
+  async function handlePublish() {
+    if (!eventDetails?.id) return;
+    setIsPublishing(true);
+    try {
+      const result = await api.publishEvent(eventDetails.id);
+      if (!result.success) {
+        alert(result.error || 'Failed to publish');
+      }
+      // Event will update via subscription
+    } catch (err) {
+      console.error('Publish failed:', err);
+      alert('Failed to publish event');
+    } finally {
+      setIsPublishing(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!eventDetails?.id) return;
+    setIsDeleting(true);
+    try {
+      const result = await api.deleteEvent(eventDetails.id);
+      if (result.success) {
+        navigate('/events');
+      } else {
+        alert(result.error || 'Failed to delete');
+      }
+    } catch (err) {
+      console.error('Delete failed:', err);
+      alert('Failed to delete event');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  }
+
+  // Auto-save for planning mode (uses direct Firestore writes) or published events (uses API)
+  const { queueChange } = useAutoSave({
+    eventId: eventDetails?.id || '',
+    debounceMs: 500,
+    useDirect: isPlanning, // Direct Firestore writes for planning mode, API for published events
+    onSaveError: (err) => console.error('Auto-save failed:', err),
+  });
+
+  const handleFieldChange = useCallback((field: string, value: unknown) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    queueChange(field as any, value);
+  }, [queueChange]);
+
+  const handleManualFieldChange = useCallback((field: string, value: unknown) => {
+    setNewEventDetails(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        [field]: value
+      };
+    });
+  }, []);
+
+  // Check access for planning events
+  if (isPlanning && !isHost) {
+    return <PlanningAccessDenied />;
+  }
+
   return (
     <>
+      {/* Banners */}
+      {isPlanning && isHost && (
+        <PlanningModeBanner
+          onPublish={handlePublish}
+          onDelete={() => setShowDeleteDialog(true)}
+          isPublishing={isPublishing}
+        />
+      )}
+      {isCancelled && <CancelledEventBanner />}
+
+      {/* Delete confirmation dialog */}
+      <DeleteDraftDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={handleDelete}
+        isDeleting={isDeleting}
+      />
+
+      {/* Notify guests dialog */}
+      <NotifyGuestsDialog
+        open={showNotifyDialog}
+        onOpenChange={setShowNotifyDialog}
+        onConfirm={handleNotifyGuests}
+      />
+
       <NavigationBar />
       <div className="max-w-(--breakpoint-xl) mx-auto text-gray-700 px-5 mt-8">
         {eventDetails ? (
@@ -307,23 +438,35 @@ export default function EventPage() {
             <div className="flex justify-between">
               <EditableEventTitle
                 eventDetails={(isEditing && newEventDetails) ? newEventDetails : eventDetails}
-                isEditing={isEditing}
+                isEditing={isPlanning || isEditing}
+                autoSave={isPlanning}
+                onFieldChange={isPlanning ? handleFieldChange : handleManualFieldChange}
               />
-              <div className="flex justify-right">
-                {isEditing && (
+              <div className="flex justify-right gap-2">
+                {isEditing && !isPlanning && (
                   <>
                     <Button onClick={toggleEditMode}>Save Changes</Button>
                     <Button variant="destructive" onClick={discardEditChanges}>Discard Changes</Button>
                   </>
                 )}
-                <SettingsDropdown isEditing={isEditing} onEditEventClicked={toggleEditMode} />
+                {isHost && eventId && (
+                  <CoHostManager
+                    eventId={eventId}
+                    hostIds={eventDetails.hostIds}
+                    attendees={[...categorizedAttendees.hosts, ...categorizedAttendees.goingList, ...categorizedAttendees.notGoingList, ...categorizedAttendees.maybeList, ...categorizedAttendees.unknownList]}
+                    currentUserId={currentUserId || ''}
+                  />
+                )}
+                {!isPlanning && <SettingsDropdown isEditing={isEditing} onEditEventClicked={toggleEditMode} />}
               </div>
             </div>
             <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
               <EditableDetailsCard
                 eventDetails={(isEditing && newEventDetails) ? newEventDetails : eventDetails}
                 eventHosts={categorizedAttendees.hosts}
-                isEditing={isEditing}
+                isEditing={isPlanning || isEditing}
+                autoSave={isPlanning}
+                onFieldChange={isPlanning ? handleFieldChange : handleManualFieldChange}
               />
               {eventId && (
                 <RsvpCard

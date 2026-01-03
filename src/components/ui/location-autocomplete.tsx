@@ -13,7 +13,7 @@ type LocationAutocompleteProps = {
   onLocationSelect?: (location: LocationDetails) => void;
   placeholder?: string;
   className?: string;
-};
+} & Omit<React.ComponentProps<"input">, "value" | "onChange" | "onSelect">;
 
 export function LocationAutocomplete({
   value,
@@ -21,6 +21,7 @@ export function LocationAutocomplete({
   onLocationSelect,
   placeholder = "Event Location",
   className,
+  ...props
 }: LocationAutocompleteProps) {
   const [open, setOpen] = useState(false);
   const [predictions, setPredictions] = useState<LocationPrediction[]>([]);
@@ -149,6 +150,7 @@ export function LocationAutocomplete({
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             className={className}
+            {...props}
           />
         </PopoverAnchor>
         <PopoverContent
