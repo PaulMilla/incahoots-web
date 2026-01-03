@@ -45,6 +45,15 @@ export function getEventDetailsPublisher(eventId: string) {
       }
       const details = eventDetails as EventDetails;
       details.id = eventId;
+
+      // Compute hosts convenience field
+      if (details.host) {
+        details.hosts = [details.host, ...(details.cohosts || [])];
+      } else {
+        // Legacy fallback - use hostIds directly
+        details.hosts = details.hostIds || [];
+      }
+
       return details;
     })
   )
@@ -64,7 +73,21 @@ export function getEventsDetailsPublisher(eventIds: string[]) {
     where(documentId(), 'in', eventIds)
   );
 
-  const events$: Observable<EventDetails[]> = collectionData(refQuery, { idField: 'id' })
+  const events$: Observable<EventDetails[]> = collectionData(refQuery, { idField: 'id' }).pipe(
+    map((events: EventDetails[]) => events.map((event: EventDetails) => {
+      const details = event;
+
+      // Compute hosts convenience field
+      if (details.host) {
+        details.hosts = [details.host, ...(details.cohosts || [])];
+      } else {
+        // Legacy fallback
+        details.hosts = details.hostIds || [];
+      }
+
+      return details;
+    }))
+  );
   return events$
 }
 
