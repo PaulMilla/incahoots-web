@@ -1,6 +1,6 @@
 // src/hooks/useAutoSave.ts
 import { useRef, useCallback } from 'react';
-import { doc, getFirestore, updateDoc } from 'firebase/firestore';
+import { doc, getFirestore, updateDoc, UpdateData } from 'firebase/firestore';
 import { app } from '../lib/firebaseApp';
 import * as api from '../lib/inCahootsApi';
 import { EventDetails, UpdateEventBody } from '../types';
@@ -46,7 +46,7 @@ export function useAutoSave({
         const eventRef = doc(db, 'events', eventId);
 
         // Build update object, only including changed fields
-        const updateData: Record<string, unknown> = {};
+        const updateData: UpdateData<EventDetails> = {};
 
         if (changes.name !== undefined) {
           updateData.name = changes.name;
