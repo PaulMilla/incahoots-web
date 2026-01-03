@@ -389,6 +389,16 @@ export default function EventPage() {
     queueChange(field as any, value);
   }, [queueChange]);
 
+  const handleManualFieldChange = useCallback((field: string, value: unknown) => {
+    setNewEventDetails(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        [field]: value
+      };
+    });
+  }, []);
+
   // Check access for planning events
   if (isPlanning && !isHost) {
     return <PlanningAccessDenied />;
@@ -430,7 +440,7 @@ export default function EventPage() {
                 eventDetails={(isEditing && newEventDetails) ? newEventDetails : eventDetails}
                 isEditing={isPlanning || isEditing}
                 autoSave={isPlanning}
-                onFieldChange={isPlanning ? handleFieldChange : undefined}
+                onFieldChange={isPlanning ? handleFieldChange : handleManualFieldChange}
               />
               <div className="flex justify-right gap-2">
                 {isEditing && !isPlanning && (
@@ -456,7 +466,7 @@ export default function EventPage() {
                 eventHosts={categorizedAttendees.hosts}
                 isEditing={isPlanning || isEditing}
                 autoSave={isPlanning}
-                onFieldChange={isPlanning ? handleFieldChange : undefined}
+                onFieldChange={isPlanning ? handleFieldChange : handleManualFieldChange}
               />
               {eventId && (
                 <RsvpCard

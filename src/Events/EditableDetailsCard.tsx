@@ -41,7 +41,7 @@ const EventTime = ({ eventDetails, isEditing, autoSave, onFieldChange }: {
   useEffect(() => {
     const propTimeMs = eventDetails.startDate.seconds * 1000;
     if (newStartTime.getTime() !== propTimeMs) {
-      if (autoSave && onFieldChange) {
+      if (onFieldChange) {
         onFieldChange('startDate', convertDateToFirestoreTimestamp(newStartTime));
       }
     }
@@ -112,7 +112,7 @@ const EventLocation = ({ eventDetails, isEditing, autoSave, onFieldChange }: {
   useEffect(() => {
     const propLocationName = eventDetails?.location?.name ?? "";
     if (newEventLocation !== propLocationName) {
-      if (autoSave && onFieldChange) {
+      if (onFieldChange) {
         // Construct minimal location object or preserve logic?
         // Existing logic:
         const updatedLocation = {
@@ -126,7 +126,7 @@ const EventLocation = ({ eventDetails, isEditing, autoSave, onFieldChange }: {
 
   const handleLocationSelect = (location: LocationDetails) => {
     setNewEventLocation(location.name);
-    if (autoSave && onFieldChange) {
+    if (onFieldChange) {
       onFieldChange('location', {
         name: location.name,
         address: location.address,
@@ -192,7 +192,7 @@ const EventDescription = ({ eventDetails, isEditing, autoSave, onFieldChange }: 
   // Sync local state to parent via onFieldChange
   useEffect(() => {
     if (eventDetails.bodyText !== newEventDescription) {
-      if (autoSave && onFieldChange) {
+      if (onFieldChange) {
         onFieldChange('bodyText', newEventDescription);
       }
     }
@@ -269,7 +269,7 @@ const EventTitle = ({ eventDetails, isEditing, autoSave, onFieldChange }: Editab
   // Sync local state to parent via onFieldChange
   useEffect(() => {
     if (eventDetails.name !== newEventName) {
-      if (autoSave && onFieldChange) {
+      if (onFieldChange) {
         onFieldChange('name', newEventName);
       }
     }
