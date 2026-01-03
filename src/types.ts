@@ -43,6 +43,13 @@ export type EventDetails = {
   location: Location;
   attendeeIds: string[];
   status: EventStatus;
+  // Primary host - the original event creator
+  host: string;
+  // Co-hosts - users invited to have editing permissions
+  cohosts: string[];
+  // Computed convenience field: [host, ...cohosts]
+  hosts: string[];
+  // DEPRECATED: Kept for backward compatibility during migration
   hostIds: string[];
 };
 

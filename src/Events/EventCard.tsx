@@ -58,7 +58,7 @@ function RsvpDropdown({ attendeeDetails }: { attendeeDetails: Attendee }) {
 
 export function EventCard({ event }: { event: UserEvent }) {
   const eventDetails = event.eventDetails;
-  const isHost = eventDetails.hostIds?.includes(event.myAttendeeDetails.userId) || false;
+  const isHost = eventDetails.hosts?.includes(event.myAttendeeDetails.userId) || false;
   const isPlanning = eventDetails.status === 'planning';
   const isCancelled = eventDetails.status === 'cancelled';
 

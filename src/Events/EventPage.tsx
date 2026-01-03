@@ -212,7 +212,7 @@ export default function EventPage() {
   const currentUserId = user?.uid;
   const isPlanning = eventDetails?.status === 'planning';
   const isCancelled = eventDetails?.status === 'cancelled';
-  const isHost = eventDetails?.hostIds?.includes(currentUserId || '') || false;
+  const isHost = eventDetails?.hosts?.includes(currentUserId || '') || false;
 
   // fetch event details and attendees by eventId
   useEffect(() => {
@@ -243,9 +243,9 @@ export default function EventPage() {
             unknownList: [],
           }
           const categorizedAttendees = eventAttendees.reduce((acc, attendee) => {
-            // Check if attendee is a host using eventDetails.hostIds
+            // Check if attendee is a host using eventDetails.hosts
             // Note: eventDetails might be stale here if this stream emits first.
-            const isAttendeeHost = eventDetails?.hostIds?.includes(attendee.userId) || false;
+            const isAttendeeHost = eventDetails?.hosts?.includes(attendee.userId) || false;
             if (isAttendeeHost) {
               acc.hosts.push(attendee);
             }
@@ -452,7 +452,8 @@ export default function EventPage() {
                 {isHost && eventId && (
                   <CoHostManager
                     eventId={eventId}
-                    hostIds={eventDetails.hostIds}
+                    hosts={eventDetails.hosts}
+                    host={eventDetails.host}
                     attendees={[...categorizedAttendees.hosts, ...categorizedAttendees.goingList, ...categorizedAttendees.notGoingList, ...categorizedAttendees.maybeList, ...categorizedAttendees.unknownList]}
                     currentUserId={currentUserId || ''}
                   />

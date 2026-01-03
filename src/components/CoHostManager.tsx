@@ -15,7 +15,8 @@ import { Attendee } from '../types';
 
 interface CoHostManagerProps {
   eventId: string;
-  hostIds: string[];
+  hosts: string[];
+  host: string; // Primary host - cannot be removed
   attendees: Attendee[];
   currentUserId: string;
   onCoHostAdded?: () => void;
@@ -24,7 +25,8 @@ interface CoHostManagerProps {
 
 export function CoHostManager({
   eventId,
-  hostIds,
+  hosts,
+  host,
   attendees,
   currentUserId,
   onCoHostAdded,
@@ -34,8 +36,8 @@ export function CoHostManager({
   const [isAdding, setIsAdding] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const hosts = attendees.filter(a => hostIds.includes(a.userId));
-  const nonHostAttendees = attendees.filter(a => !hostIds.includes(a.userId));
+  const hostAttendees = attendees.filter(a => hosts.includes(a.userId));
+  const nonHostAttendees = attendees.filter(a => !hosts.includes(a.userId));
   const filteredNonHosts = nonHostAttendees.filter(a =>
     a.fullName.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -79,21 +81,25 @@ export function CoHostManager({
           <div>
             <h4 className="text-sm font-medium mb-2">Current Hosts</h4>
             <div className="space-y-2">
-              {hosts.map(host => (
+              {hostAttendees.map(hostAttendee => (
                 <div
-                  key={host.userId}
+                  key={hostAttendee.userId}
                   className="flex items-center justify-between p-2 bg-gray-50 rounded"
                 >
                   <div className="flex items-center gap-2">
                     <Crown className="h-4 w-4 text-yellow-500" />
-                    <span>{host.fullName}</span>
-                    {host.userId === currentUserId && (
+                    <span>{hostAttendee.fullName}</span>
+                    {hostAttendee.userId === host && (
+                      <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">Owner</span>
+                    )}
+                    {hostAttendee.userId === currentUserId && (
                       <span className="text-xs text-gray-500">(you)</span>
                     )}
                   </div>
-                  {host.userId !== currentUserId && hostIds.length > 1 && (
+                  {/* Only show remove button for cohosts, not the primary host */}
+                  {hostAttendee.userId !== host && hostAttendee.userId !== currentUserId && (
                     <button
-                      onClick={() => handleRemoveCoHost(host.userId)}
+                      onClick={() => handleRemoveCoHost(hostAttendee.userId)}
                       className="text-gray-400 hover:text-red-500"
                     >
                       <X className="h-4 w-4" />
