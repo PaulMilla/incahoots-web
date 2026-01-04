@@ -29,6 +29,7 @@ export function LocationAutocomplete({
   const [error, setError] = useState<string | null>(null);
   const [selectedValue, setSelectedValue] = useState<string>("");
   const justSelected = useRef(false);
+  const hasInteracted = useRef(false);
 
   // Debounce the input value to limit API calls and wait for user to stop typing
   const [debouncedValue] = useDebounce(value, 300);
@@ -54,7 +55,11 @@ export function LocationAutocomplete({
       try {
         const results = await locationService.searchLocations(debouncedValue);
         setPredictions(results);
-        setOpen(results.length > 0);
+        // Only open the popover if user has interacted with the input
+        // This prevents auto-opening when loading an event with an existing location
+        if (hasInteracted.current) {
+          setOpen(results.length > 0);
+        }
       } catch (err) {
         console.error("Error fetching location predictions:", err);
         setError(err instanceof Error ? err.message : "Failed to fetch locations");
@@ -95,6 +100,7 @@ export function LocationAutocomplete({
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    hasInteracted.current = true;
     onChange(e.target.value);
     // Don't close the popover on input change if there are predictions
     // The debounce will handle opening it
