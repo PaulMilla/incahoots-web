@@ -12,8 +12,6 @@ import {
 import { map, switchMap, catchError } from 'rxjs/operators';
 import { Observable, combineLatest, of } from 'rxjs';
 
-// @ts-expect-error - Unfortunately types seem to be messed up
-// There are types at '/node_modules/rxfire/firestore/index.d.ts'
 import { docData, collectionData } from 'rxfire/firestore';
 import { isLocalhost } from "../utils/isLocalHost.ts";
 
@@ -73,8 +71,8 @@ export function getEventsDetailsPublisher(eventIds: string[]) {
     where(documentId(), 'in', eventIds)
   );
 
-  const events$: Observable<EventDetails[]> = collectionData(refQuery, { idField: 'id' }).pipe(
-    map((events: EventDetails[]) => events.map((event: EventDetails) => {
+  const events$ = collectionData(refQuery, { idField: 'id' }).pipe(
+    map((events) => (events as EventDetails[]).map((event: EventDetails) => {
       const details = event;
 
       // Compute hosts convenience field
@@ -93,13 +91,13 @@ export function getEventsDetailsPublisher(eventIds: string[]) {
 
 export function getEventAttendeesPublisher(eventId: string) {
   const ref = collection(db, "events", eventId, "eventAttendees");
-  const eventAttendees$: Observable<Attendee[]> = collectionData(ref, { idField: 'id' })
+  const eventAttendees$ = collectionData(ref, { idField: 'id' }) as Observable<Attendee[]>
   return eventAttendees$
 }
 
 export function getUserEventsPublisher(userId: string) {
   const ref = collection(db, "users", userId, "events");
-  const myEventInfos$: Observable<UserEventInfo[]> = collectionData(ref);
+  const myEventInfos$ = collectionData(ref) as Observable<UserEventInfo[]>;
 
   const userEvents$ = myEventInfos$.pipe(
     switchMap(myEventInfos => {
